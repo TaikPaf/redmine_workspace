@@ -64,3 +64,7 @@ Pour lancer les tests :
 docker compose --profile test run --rm test
 docker compose --profile test run --rm -e PLUGIN=redmine_kanban test
 ```
+
+## Licence
+
+GPL v2 ou ultérieure, comme Redmine. Voir le fichier `LICENSE`.
