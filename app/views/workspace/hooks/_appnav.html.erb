@@ -1,0 +1,61 @@
+<% if User.current.logged? %>
+<% nav_user = User.current %>
+<% current_path = request.path %>
+<% favorites = Project.visible.where(id: nav_user.bookmarked_project_ids).sorted.limit(8).to_a %>
+<% items = [] %>
+<% items << [:workspace, l(:label_workspace), workspace_path, current_path == workspace_path, '<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>'] %>
+<% items << [:projects, l(:label_workspace_projects), workspace_projects_path, current_path.start_with?(workspace_projects_path) || current_path == projects_path, '<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>'] %>
+<% items << [:issues, l(:label_issue_plural), issues_path, current_path == issues_path, '<path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/>'] %>
+<% if respond_to?(:kanban_path) && nav_user.allowed_to?(:view_kanban, nil, global: true) %>
+  <% items << [:kanban, l(:label_kanban), kanban_path, current_path == kanban_path, '<rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="11" rx="1.5"/><rect x="17" y="4" width="4" height="7" rx="1.5"/>'] %>
+<% end %>
+<% if nav_user.allowed_to?(:view_time_entries, nil, global: true) %>
+  <% items << [:time, l(:label_spent_time), time_entries_path, current_path == time_entries_path, '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'] %>
+<% end %>
+<nav id="gf-appnav" aria-label="<%= l(:label_workspace_navigation) %>"
+     data-palette-url="<%= workspace_palette_path(project_id: @project&.id) %>"
+     data-i18n="<%= {
+       placeholder: l(:label_workspace_palette_placeholder),
+       empty: l(:label_workspace_palette_empty),
+       hint_navigate: l(:label_workspace_palette_hint_navigate),
+       hint_open: l(:label_workspace_palette_hint_open),
+       hint_issue: l(:label_workspace_palette_hint_issue),
+       hint_actions: l(:label_workspace_palette_hint_actions),
+       close: l(:button_close),
+       title: l(:label_workspace_palette_title)
+     }.to_json %>">
+  <%= link_to home_path, class: 'gf-appnav-brand' do %>
+    <span class="gf-appnav-logo" aria-hidden="true"></span>
+    <span><%= Setting.app_title %></span>
+  <% end %>
+  <button type="button" class="gf-appnav-search" data-gf-palette-open>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <span><%= l(:label_search) %>…</span>
+    <kbd>Ctrl K</kbd>
+  </button>
+  <ul class="gf-appnav-links">
+    <% items.each do |key, label, url, active, icon| %>
+      <li>
+        <%= link_to url, class: "gf-appnav-link gf-appnav-#{key}#{' active' if active}", 'aria-current': (active ? 'page' : nil) do %>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><%= icon.html_safe %></svg>
+          <span><%= label %></span>
+        <% end %>
+      </li>
+    <% end %>
+  </ul>
+  <% if favorites.any? %>
+    <h2 class="gf-appnav-heading"><%= l(:label_workspace_favorite_projects) %></h2>
+    <ul class="gf-appnav-links gf-appnav-favorites">
+      <% favorites.each do |project| %>
+        <% active = @project && @project.id == project.id %>
+        <li>
+          <%= link_to project_path(project), class: "gf-appnav-link#{' active' if active}", 'aria-current': (active ? 'page' : nil) do %>
+            <span class="gf-appnav-dot" style="background: <%= RedmineWorkspace::ProjectsOverview.color_for(project) %>" aria-hidden="true"></span>
+            <span><%= project.name %></span>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+</nav>
+<% end %>

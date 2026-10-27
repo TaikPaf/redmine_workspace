@@ -1,0 +1,96 @@
+fr:
+  label_workspace: Mon espace
+  label_workspace_projects: Projets
+  label_workspace_navigation: Navigation principale
+  label_workspace_hello: "Bonjour %{name}"
+  label_workspace_good_evening: "Bonsoir %{name}"
+  text_workspace_summary: "%{overdue} demandes en retard, %{week} à rendre cette semaine"
+  label_workspace_bucket_overdue: En retard
+  label_workspace_bucket_week: Cette semaine
+  label_workspace_bucket_later: Plus tard
+  label_workspace_bucket_none: Sans échéance
+  label_workspace_my_issues: Mes demandes
+  label_workspace_tab_assigned: Assignées à moi
+  label_workspace_tab_created: J'ai créé
+  label_workspace_tab_watched: Je surveille
+  text_workspace_empty_assigned: Aucune demande ouverte ne vous est assignée.
+  text_workspace_empty_created: Vous n'avez créé aucune demande encore ouverte.
+  text_workspace_empty_watched: Vous ne surveillez aucune demande ouverte.
+  label_workspace_see_all: "Voir les %{count} demandes"
+  label_workspace_since_last_visit: Depuis votre dernière visite
+  text_workspace_no_activity: Rien de nouveau sur vos demandes.
+  text_workspace_journal_comment: "%{user} a commenté %{issue}"
+  text_workspace_journal_change: "%{user} a modifié %{issue} : %{change}"
+  label_workspace_ago: "il y a %{time}"
+  label_workspace_recent_issues: Consultées récemment
+  label_workspace_favorite_projects: Projets favoris
+  text_workspace_no_favorites_html: "Ajoutez des favoris avec l'étoile sur la page %{link}."
+  label_workspace_assigned_to_me: à moi
+  label_workspace_open: ouvertes
+  label_workspace_overdue: en retard
+  text_workspace_projects_count:
+    one: "1 projet, favoris en premier"
+    other: "%{count} projets, favoris en premier"
+  label_workspace_filter_projects: Filtrer les projets
+  label_workspace_detailed_list: Liste détaillée
+  label_workspace_projects_all: Tous
+  label_workspace_projects_bookmarked: Favoris
+  label_workspace_projects_member: Mes projets
+  label_workspace_projects_overdue: Avec du retard
+  label_workspace_bookmark: Ajouter aux favoris
+  label_workspace_unbookmark: Retirer des favoris
+  label_workspace_updated_ago: "Mis à jour il y a %{time}"
+  label_workspace_no_issues: Aucune demande
+  text_workspace_no_project_match: Aucun projet ne correspond.
+
+  label_workspace_quick_views: Vues rapides
+  label_workspace_quick_search: Recherche simple
+  label_workspace_search_placeholder: "Ex. : moi en retard prio:haute, ou : bug ouvert version:1.2 export"
+  label_workspace_understood: "Compris :"
+  text_workspace_search_help: "Écrivez ce que vous cherchez : moi, retard, semaine, bug, prio:haute, projet:nom, version:1.2, @alice, #123…"
+  label_workspace_token_open_default: demandes ouvertes
+  label_workspace_remove_token: "Retirer « %{label} »"
+  label_workspace_me: moi
+  label_workspace_token_issue: "Demande #%{id}"
+  label_workspace_token_text: "Texte : « %{text} »"
+  label_workspace_token_assigned_to: "Assigné à : %{name}"
+  label_workspace_token_unassigned: Non assignées
+  label_workspace_token_author: "Créée par : %{name}"
+  label_workspace_token_overdue: "Échéance : en retard"
+  label_workspace_token_due_today: "Échéance : aujourd'hui"
+  label_workspace_token_due_week: "Échéance : cette semaine"
+  label_workspace_token_due_month: "Échéance : ce mois-ci"
+  label_workspace_token_status: "Statut : %{name}"
+  label_workspace_token_watched: Je surveille
+  label_workspace_token_tracker: "Tracker : %{name}"
+  label_workspace_token_priority: "Priorité : %{name}"
+  label_workspace_token_priority_high: "Priorité : haute ou plus"
+  label_workspace_token_priority_low: "Priorité : basse"
+  label_workspace_token_project: "Projet : %{name}"
+  label_workspace_token_version: "Version : %{name}"
+  label_workspace_token_updated: "Mises à jour : %{period}"
+  label_workspace_view_mine: Mes demandes
+  label_workspace_view_my_overdue: Mes retards
+  label_workspace_view_overdue: En retard
+  label_workspace_view_unassigned: Non assignées
+  label_workspace_view_high: Priorité haute
+  label_workspace_view_updated: Mises à jour cette semaine
+  label_workspace_view_watched: Je surveille
+
+  label_workspace_move_to: "Passer à :"
+
+  label_workspace_palette_title: Recherche rapide
+  label_workspace_palette_placeholder: "Numéro, projet, texte ou action…"
+  label_workspace_palette_empty: Rien trouvé.
+  label_workspace_palette_recent: Récents
+  label_workspace_palette_actions: Actions
+  label_workspace_palette_search: "Rechercher « %{text} » dans les demandes"
+  label_workspace_palette_search_hint: Recherche simple
+  label_workspace_palette_hint_navigate: "↑ ↓ naviguer"
+  label_workspace_palette_hint_open: "Entrée ouvrir"
+  label_workspace_palette_hint_issue: "#123 aller à une demande"
+  label_workspace_palette_hint_actions: "> actions"
+  label_workspace_toggle_theme: Basculer clair / sombre
+
+  label_workspace_setting_home_redirect: "« Mon espace » comme page d'accueil"
+  text_workspace_setting_home_redirect: Les utilisateurs connectés arrivent sur « Mon espace » au lieu de la page d'accueil de Redmine.

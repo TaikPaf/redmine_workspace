@@ -1,0 +1,93 @@
+<% html_title(l(:label_workspace_projects)) %>
+
+<div class="gf-page gf-projects" data-gf-projects>
+  <header class="gf-page-header">
+    <div>
+      <h2><%= l(:label_workspace_projects) %></h2>
+      <p class="gf-muted"><%= l(:text_workspace_projects_count, count: @cards.size) %></p>
+    </div>
+    <div class="gf-page-actions">
+      <label class="gf-search-field">
+        <span class="gf-visually-hidden"><%= l(:label_workspace_filter_projects) %></span>
+        <%= sprite_icon('search', icon_only: true) %>
+        <input type="search" placeholder="<%= l(:label_workspace_filter_projects) %>…" data-gf-project-filter>
+      </label>
+      <%= link_to l(:label_workspace_detailed_list), projects_path, class: 'gf-button' %>
+      <% if User.current.allowed_to?(:add_project, nil, global: true) %>
+        <%= link_to sprite_icon('add', l(:label_project_new)), new_project_path, class: 'gf-button gf-button-primary' %>
+      <% end %>
+    </div>
+  </header>
+
+  <div class="gf-chips" role="group" aria-label="<%= l(:label_display) %>">
+    <% %w(all bookmarked member overdue).each_with_index do |filter, index| %>
+      <button type="button" class="gf-chip" data-gf-project-chip="<%= filter %>" aria-pressed="<%= index.zero? %>"><%= l("label_workspace_projects_#{filter}") %></button>
+    <% end %>
+  </div>
+
+  <% if @cards.empty? %>
+    <p class="gf-empty"><%= l(:label_no_data) %></p>
+  <% end %>
+
+  <div class="gf-project-grid">
+    <% @cards.each do |card| %>
+      <% project = card.project %>
+      <article class="gf-card gf-project-card"
+               data-name="<%= "#{project.name} #{project.identifier}".downcase %>"
+               data-bookmarked="<%= card.bookmarked %>" data-member="<%= card.member %>" data-overdue="<%= card.overdue > 0 %>">
+        <div class="gf-project-head">
+          <%= workspace_project_badge(project) %>
+          <div class="gf-project-title">
+            <h3><%= link_to project.name, project_path(project) %></h3>
+            <% if project.short_description.present? %>
+              <p class="gf-muted gf-small"><%= project.short_description.truncate(90) %></p>
+            <% end %>
+          </div>
+          <% label = card.bookmarked ? l(:label_workspace_unbookmark) : l(:label_workspace_bookmark) %>
+          <button type="button" class="gf-star" data-gf-bookmark="<%= bookmark_project_path(project) %>"
+                  aria-pressed="<%= card.bookmarked %>" aria-label="<%= label %>" title="<%= label %>"
+                  data-label-on="<%= l(:label_workspace_unbookmark) %>" data-label-off="<%= l(:label_workspace_bookmark) %>">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3l-5.6 2.9 1.1-6.2L3 9.6l6.2-.9z"/></svg>
+          </button>
+        </div>
+
+        <div class="gf-project-stats">
+          <%= link_to workspace_search_path(q: '', project_id: project.id), class: 'gf-mini-stat' do %>
+            <strong><%= card.open %></strong><span><%= l(:label_workspace_open) %></span>
+          <% end %>
+          <%= link_to workspace_search_path(q: 'moi', project_id: project.id), class: 'gf-mini-stat gf-mine' do %>
+            <strong><%= card.mine %></strong><span><%= l(:label_workspace_assigned_to_me) %></span>
+          <% end %>
+          <%= link_to workspace_search_path(q: 'retard', project_id: project.id), class: "gf-mini-stat #{'gf-alert' if card.overdue > 0}" do %>
+            <strong><%= card.overdue %></strong><span><%= l(:label_workspace_overdue) %></span>
+          <% end %>
+        </div>
+
+        <% if card.version %>
+          <div class="gf-version">
+            <div class="gf-version-head">
+              <%= link_to card.version.name, version_path(card.version) %>
+              <span class="gf-muted"><%= card.progress %> %<% if card.version.effective_date %> · <%= format_date(card.version.effective_date) %><% end %></span>
+            </div>
+            <div class="gf-progress" role="progressbar" aria-label="<%= card.version.name %>" aria-valuenow="<%= card.progress %>" aria-valuemin="0" aria-valuemax="100">
+              <span style="width: <%= card.progress %>%"></span>
+            </div>
+          </div>
+        <% end %>
+
+        <div class="gf-project-foot">
+          <span class="gf-muted gf-small">
+            <%= card.updated_on ? l(:label_workspace_updated_ago, time: distance_of_time_in_words(Time.now, card.updated_on)) : l(:label_workspace_no_issues) %>
+          </span>
+          <span class="gf-project-links">
+            <%= link_to l(:label_issue_plural), project_issues_path(project) %>
+            <% if respond_to?(:project_kanban_path) && project.module_enabled?(:kanban) && User.current.allowed_to?(:view_kanban, project) %>
+              <%= link_to l(:label_kanban), project_kanban_path(project) %>
+            <% end %>
+          </span>
+        </div>
+      </article>
+    <% end %>
+  </div>
+  <p class="gf-empty" data-gf-projects-empty hidden><%= l(:text_workspace_no_project_match) %></p>
+</div>

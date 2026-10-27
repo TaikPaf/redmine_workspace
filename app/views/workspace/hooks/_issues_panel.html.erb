@@ -1,0 +1,40 @@
+<% if User.current.logged? %>
+<% text = params[:gf_q].to_s %>
+<% parsed = text.present? ? RedmineWorkspace::SearchParser.new(project: project).parse(text) : nil %>
+<% views = RedmineWorkspace::QuickViews.for(project) %>
+<section id="gf-issues-panel" class="gf-issues-panel" aria-label="<%= l(:label_workspace_quick_search) %>">
+  <div class="gf-chips" role="group" aria-label="<%= l(:label_workspace_quick_views) %>">
+    <% views.each do |view| %>
+      <% active = text.strip == view.text %>
+      <%= link_to workspace_search_path(q: view.text, project_id: project&.id), class: "gf-chip#{' active' if active}", 'aria-current': (active ? 'true' : nil) do %>
+        <%= view.label %> <span class="gf-count"><%= view.count %></span>
+      <% end %>
+    <% end %>
+  </div>
+  <%= form_tag(workspace_search_path, method: :get, class: 'gf-smart-search') do %>
+    <%= hidden_field_tag 'project_id', project&.id, id: nil %>
+    <label class="gf-search-field gf-search-large">
+      <span class="gf-visually-hidden"><%= l(:label_workspace_quick_search) %></span>
+      <%= sprite_icon('search', icon_only: true) %>
+      <%= text_field_tag 'q', text, id: 'gf-smart-q', placeholder: l(:label_workspace_search_placeholder), autocomplete: 'off' %>
+    </label>
+    <%= submit_tag l(:button_apply), name: nil, class: 'gf-button gf-button-primary' %>
+  <% end %>
+  <div class="gf-understood">
+    <span class="gf-muted gf-small"><%= l(:label_workspace_understood) %></span>
+    <% if parsed.nil? || parsed.tokens.empty? %>
+      <span class="gf-muted gf-small"><%= parsed ? l(:label_workspace_token_open_default) : l(:text_workspace_search_help) %></span>
+    <% else %>
+      <% parsed.tokens.each do |token| %>
+        <% remaining = text.sub(token.raw, '').squeeze(' ').strip %>
+        <span class="gf-token">
+          <%= token.label %>
+          <%= link_to workspace_search_path(q: remaining, project_id: project&.id), class: 'gf-token-remove', 'aria-label': l(:label_workspace_remove_token, label: token.label) do %>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+          <% end %>
+        </span>
+      <% end %>
+    <% end %>
+  </div>
+</section>
+<% end %>

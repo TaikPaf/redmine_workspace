@@ -1,0 +1,96 @@
+en:
+  label_workspace: My space
+  label_workspace_projects: Projects
+  label_workspace_navigation: Main navigation
+  label_workspace_hello: "Hello %{name}"
+  label_workspace_good_evening: "Good evening %{name}"
+  text_workspace_summary: "%{overdue} overdue issues, %{week} due this week"
+  label_workspace_bucket_overdue: Overdue
+  label_workspace_bucket_week: This week
+  label_workspace_bucket_later: Later
+  label_workspace_bucket_none: No due date
+  label_workspace_my_issues: My issues
+  label_workspace_tab_assigned: Assigned to me
+  label_workspace_tab_created: Created by me
+  label_workspace_tab_watched: Watched
+  text_workspace_empty_assigned: No open issue is assigned to you.
+  text_workspace_empty_created: You have no open issue that you created.
+  text_workspace_empty_watched: You are not watching any open issue.
+  label_workspace_see_all: "See all %{count} issues"
+  label_workspace_since_last_visit: Since your last visit
+  text_workspace_no_activity: Nothing new on your issues.
+  text_workspace_journal_comment: "%{user} commented on %{issue}"
+  text_workspace_journal_change: "%{user} updated %{issue}: %{change}"
+  label_workspace_ago: "%{time} ago"
+  label_workspace_recent_issues: Recently viewed
+  label_workspace_favorite_projects: Favorite projects
+  text_workspace_no_favorites_html: "Add favorites with the star on the %{link} page."
+  label_workspace_assigned_to_me: mine
+  label_workspace_open: open
+  label_workspace_overdue: overdue
+  text_workspace_projects_count:
+    one: "1 project, favorites first"
+    other: "%{count} projects, favorites first"
+  label_workspace_filter_projects: Filter projects
+  label_workspace_detailed_list: Detailed list
+  label_workspace_projects_all: All
+  label_workspace_projects_bookmarked: Favorites
+  label_workspace_projects_member: My projects
+  label_workspace_projects_overdue: With overdue issues
+  label_workspace_bookmark: Add to favorites
+  label_workspace_unbookmark: Remove from favorites
+  label_workspace_updated_ago: "Updated %{time} ago"
+  label_workspace_no_issues: No issues
+  text_workspace_no_project_match: No project matches.
+
+  label_workspace_quick_views: Quick views
+  label_workspace_quick_search: Simple search
+  label_workspace_search_placeholder: "E.g.: me overdue prio:high, or: bug open version:1.2 export"
+  label_workspace_understood: "Understood:"
+  text_workspace_search_help: "Type what you are looking for: me, overdue, week, bug, prio:high, project:name, version:1.2, @alice, #123…"
+  label_workspace_token_open_default: open issues
+  label_workspace_remove_token: "Remove “%{label}”"
+  label_workspace_me: me
+  label_workspace_token_issue: "Issue #%{id}"
+  label_workspace_token_text: "Text: “%{text}”"
+  label_workspace_token_assigned_to: "Assigned to: %{name}"
+  label_workspace_token_unassigned: Unassigned
+  label_workspace_token_author: "Created by: %{name}"
+  label_workspace_token_overdue: "Due: overdue"
+  label_workspace_token_due_today: "Due: today"
+  label_workspace_token_due_week: "Due: this week"
+  label_workspace_token_due_month: "Due: this month"
+  label_workspace_token_status: "Status: %{name}"
+  label_workspace_token_watched: Watched
+  label_workspace_token_tracker: "Tracker: %{name}"
+  label_workspace_token_priority: "Priority: %{name}"
+  label_workspace_token_priority_high: "Priority: high or above"
+  label_workspace_token_priority_low: "Priority: low"
+  label_workspace_token_project: "Project: %{name}"
+  label_workspace_token_version: "Version: %{name}"
+  label_workspace_token_updated: "Updated: %{period}"
+  label_workspace_view_mine: My issues
+  label_workspace_view_my_overdue: My overdue
+  label_workspace_view_overdue: Overdue
+  label_workspace_view_unassigned: Unassigned
+  label_workspace_view_high: High priority
+  label_workspace_view_updated: Updated this week
+  label_workspace_view_watched: Watched
+
+  label_workspace_move_to: "Move to:"
+
+  label_workspace_palette_title: Quick search
+  label_workspace_palette_placeholder: "Number, project, text or action…"
+  label_workspace_palette_empty: Nothing found.
+  label_workspace_palette_recent: Recent
+  label_workspace_palette_actions: Actions
+  label_workspace_palette_search: "Search issues for “%{text}”"
+  label_workspace_palette_search_hint: Simple search
+  label_workspace_palette_hint_navigate: "↑ ↓ navigate"
+  label_workspace_palette_hint_open: "Enter open"
+  label_workspace_palette_hint_issue: "#123 go to an issue"
+  label_workspace_palette_hint_actions: "> actions"
+  label_workspace_toggle_theme: Toggle light / dark
+
+  label_workspace_setting_home_redirect: "“My space” as home page"
+  text_workspace_setting_home_redirect: Logged-in users land on “My space” instead of Redmine's home page.

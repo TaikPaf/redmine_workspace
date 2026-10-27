@@ -1,0 +1,44 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  tests:
+    name: Redmine 7.0.2 / sqlite3 / ruby 3.4
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Redmine
+        uses: actions/checkout@v6
+        with:
+          repository: redmine/redmine
+          ref: '7.0.2'
+          path: redmine
+
+      - name: Checkout plugin
+        uses: actions/checkout@v6
+        with:
+          path: redmine/plugins/redmine_workspace
+
+      - name: Configure database
+        working-directory: redmine
+        run: printf 'test:\n  adapter: sqlite3\n  database: db/test.sqlite3\n' > config/database.yml
+
+      - name: Install Ruby and gems
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.4'
+          bundler-cache: true
+          working-directory: redmine
+        env:
+          BUNDLE_WITHOUT: development
+
+      - name: Run plugin tests
+        working-directory: redmine
+        env:
+          RAILS_ENV: test
+          BUNDLE_WITHOUT: development
+        run: |
+          bundle exec rake generate_secret_token db:create db:migrate redmine:plugins:migrate
+          bundle exec rake redmine:plugins:test NAME=redmine_workspace

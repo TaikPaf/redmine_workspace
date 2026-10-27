@@ -1,0 +1,6 @@
+<p>
+  <%= hidden_field_tag 'settings[home_redirect]', '0', id: nil %>
+  <label for="settings_home_redirect"><%= l(:label_workspace_setting_home_redirect) %></label>
+  <%= check_box_tag 'settings[home_redirect]', '1', @settings['home_redirect'] == '1', id: 'settings_home_redirect' %>
+  <em class="info"><%= l(:text_workspace_setting_home_redirect) %></em>
+</p>

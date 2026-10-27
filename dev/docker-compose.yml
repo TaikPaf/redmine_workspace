@@ -1,0 +1,33 @@
+name: redmine-dev
+
+x-redmine: &redmine
+  build: .
+  image: redmine-workspace-dev
+  volumes:
+    - ..:/usr/src/redmine/plugins/redmine_workspace
+    - ../../redmine_kanban:/usr/src/redmine/plugins/redmine_kanban
+    - ../../redmine_theme:/usr/src/redmine/themes/glassfluid
+
+services:
+  redmine:
+    <<: *redmine
+    command: sh -c "rm -f tmp/pids/server.pid && bundle exec rake db:migrate redmine:plugins:migrate && bundle exec rails server -b 0.0.0.0 -p 3000"
+    environment:
+      RAILS_ENV: development
+    ports:
+      - "3000:3000"
+    volumes:
+      - ..:/usr/src/redmine/plugins/redmine_workspace
+      - ../../redmine_kanban:/usr/src/redmine/plugins/redmine_kanban
+      - ../../redmine_theme:/usr/src/redmine/themes/glassfluid
+      - sqlite:/usr/src/redmine/sqlite
+
+  test:
+    <<: *redmine
+    profiles: [test]
+    environment:
+      RAILS_ENV: test
+    command: sh -c "bundle exec rake db:drop db:create db:migrate redmine:plugins:migrate && bundle exec rake redmine:plugins:test NAME=$${PLUGIN:-redmine_workspace}"
+
+volumes:
+  sqlite:
