@@ -78,6 +78,10 @@ en:
   label_workspace_view_watched: Watched
 
   label_workspace_move_to: "Move to:"
+  label_workspace_inline_edit: Click to edit
+  label_workspace_inline_saving: Saving…
+  error_workspace_inline_failed: The change could not be saved.
+  error_workspace_inline_not_allowed: "This value is not allowed by the workflow or your permissions."
 
   label_workspace_palette_title: Quick search
   label_workspace_palette_placeholder: "Number, project, text or action…"

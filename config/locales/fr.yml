@@ -78,6 +78,10 @@ fr:
   label_workspace_view_watched: Je surveille
 
   label_workspace_move_to: "Passer à :"
+  label_workspace_inline_edit: Cliquer pour modifier
+  label_workspace_inline_saving: Enregistrement…
+  error_workspace_inline_failed: La modification n'a pas pu être enregistrée.
+  error_workspace_inline_not_allowed: "Cette valeur n'est pas autorisée par le workflow ou par vos permissions."
 
   label_workspace_palette_title: Recherche rapide
   label_workspace_palette_placeholder: "Numéro, projet, texte ou action…"

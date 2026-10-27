@@ -19,6 +19,7 @@ Il est conçu pour aller avec le thème [Glassfluid](https://github.com/TaikPaf/
 - **Palette Ctrl+K** (⌘K sur Mac), sur toutes les pages : aller à une demande (`#123`), à un projet, chercher dans les sujets, lancer une action (`>`).
 - **Navigation de gauche** (écrans de 1100 px et plus) : Mon espace, Projets, Demandes, Kanban, Temps passé et projets favoris.
 - **Changement de statut en un clic** sur la page d'une demande (« Passer à : »). Seuls les statuts autorisés par le workflow sont proposés.
+- **Édition en un clic** des champs d'une demande : statut, priorité, assigné, catégorie, version, dates, avancement, temps estimé et champs personnalisés simples (texte, nombre, date, oui/non, liste, utilisateur, version). Un clic sur la valeur ouvre l'éditeur. Un choix dans la liste, ou Entrée, enregistre. Échap annule. La modification passe par Redmine : workflow, champs en lecture seule ou obligatoires, historique et notifications sont respectés, et une modification faite entre-temps par quelqu'un d'autre est signalée.
 
 ### Mots compris par la recherche simple
 

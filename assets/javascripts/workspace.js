@@ -198,6 +198,151 @@
     if (bar && subject) { subject.parentNode.insertBefore(bar, subject.nextSibling); }
   }
 
+  /* ---------- In-place editing on the issue page ---------- */
+
+  var InlineEdit = {
+    init: function () {
+      var config = document.getElementById('gf-inline');
+      if (!config) { return; }
+      this.url = config.getAttribute('data-url');
+      try { this.i18n = JSON.parse(config.getAttribute('data-i18n')) || {}; } catch (e) { this.i18n = {}; }
+      var self = this;
+      window.fetch(this.url, {headers: {Accept: 'application/json'}, credentials: 'same-origin'})
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (data) { if (data) { self.decorate(data); } })
+        .catch(function () {});
+    },
+
+    decorate: function (data) {
+      var self = this;
+      this.lockVersion = data.lock_version;
+      Object.keys(data.fields).forEach(function (key) {
+        var block = document.querySelector('div.issue .attributes .attribute.' + CSS.escape(key));
+        var value = block && block.querySelector('.value');
+        if (!value) { return; }
+        value.classList.add('gf-editable');
+        value.setAttribute('role', 'button');
+        value.setAttribute('tabindex', '0');
+        value.setAttribute('title', self.i18n.edit || '');
+        var label = block.querySelector('.label');
+        value.setAttribute('aria-label', (label ? label.textContent.replace(/:\s*$/, '') + ' : ' : '') + (self.i18n.edit || ''));
+        var open = function (e) {
+          if (e.type === 'click' && e.target.closest('a') && (e.ctrlKey || e.metaKey || e.shiftKey)) { return; }
+          if (value.classList.contains('gf-editing')) { return; }
+          e.preventDefault();
+          self.open(value, data.fields[key]);
+        };
+        value.addEventListener('click', open);
+        value.addEventListener('keydown', function (e) {
+          if ((e.key === 'Enter' || e.key === ' ') && e.target === value) { open(e); }
+        });
+      });
+    },
+
+    open: function (value, field) {
+      if (value.classList.contains('gf-editing')) { return; }
+      var self = this;
+      var original = value.innerHTML;
+      var editor;
+      if (field.type === 'select') {
+        editor = el('select');
+        if (field.blank) { editor.appendChild(new Option('—', '')); }
+        field.options.forEach(function (option) {
+          editor.appendChild(new Option(option[0], option[1], false, option[1] === field.value));
+        });
+        if (!field.options.some(function (o) { return o[1] === field.value; })) { editor.value = ''; }
+      } else {
+        editor = el('input');
+        editor.type = field.type === 'number' ? 'number' : (field.type === 'date' ? 'date' : 'text');
+        if (field.step) { editor.step = field.step; }
+        if (field.min !== undefined) { editor.min = field.min; }
+        editor.value = field.value === null || field.value === undefined ? '' : field.value;
+      }
+      editor.className = 'gf-inline-editor';
+      editor.setAttribute('aria-label', value.getAttribute('aria-label') || '');
+
+      value.classList.add('gf-editing');
+      value.removeAttribute('role');
+      value.innerHTML = '';
+      value.appendChild(editor);
+      editor.focus();
+
+      var done = false;
+      var cancel = function () {
+        if (done) { return; }
+        done = true;
+        value.innerHTML = original;
+        value.classList.remove('gf-editing');
+        value.setAttribute('role', 'button');
+        value.focus();
+      };
+      var commit = function () {
+        if (done) { return; }
+        if (String(editor.value) === String(field.value === null || field.value === undefined ? '' : field.value)) { cancel(); return; }
+        done = true;
+        editor.disabled = true;
+        value.classList.add('gf-saving');
+        self.save(field, editor.value).then(function () {
+          return self.refresh();
+        }).catch(function (message) {
+          value.innerHTML = original;
+          value.classList.remove('gf-editing', 'gf-saving');
+          value.setAttribute('role', 'button');
+          self.showError(value, message);
+        });
+      };
+
+      editor.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') { e.preventDefault(); cancel(); }
+        else if (e.key === 'Enter') { e.preventDefault(); commit(); }
+      });
+      if (field.type === 'select') {
+        editor.addEventListener('change', commit);
+      }
+      editor.addEventListener('blur', function () {
+        window.setTimeout(function () { field.type === 'select' ? cancel() : commit(); }, 120);
+      });
+    },
+
+    save: function (field, newValue) {
+      var self = this;
+      return window.fetch(this.url, {
+        method: 'PATCH',
+        credentials: 'same-origin',
+        headers: {'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-Token': csrfToken()},
+        body: JSON.stringify({attribute: field.attribute, value: newValue, lock_version: this.lockVersion})
+      }).then(function (r) {
+        return r.json().catch(function () { return {}; }).then(function (data) {
+          if (!r.ok) { throw (data && data.error) || self.i18n.error; }
+          self.lockVersion = data.lock_version;
+        });
+      });
+    },
+
+    // Reloads the issue block and history so derived values and the journal stay accurate.
+    refresh: function () {
+      return window.fetch(window.location.href, {credentials: 'same-origin', headers: {Accept: 'text/html'}})
+        .then(function (r) { return r.text(); })
+        .then(function (html) {
+          var doc = new DOMParser().parseFromString(html, 'text/html');
+          ['div.issue', '#history', '#content > .contextual'].forEach(function (selector) {
+            var fresh = doc.querySelector(selector);
+            var current = document.querySelector(selector);
+            if (fresh && current) { current.replaceWith(document.importNode(fresh, true)); }
+          });
+          placeTransitions();
+          InlineEdit.init();
+        });
+    },
+
+    showError: function (value, message) {
+      var note = el('div', 'gf-inline-error', message || this.i18n.error);
+      note.setAttribute('role', 'alert');
+      value.appendChild(note);
+      window.setTimeout(function () { note.remove(); }, 6000);
+    }
+  };
+
   /* ---------- Projects page ---------- */
 
   function initProjects() {
@@ -255,6 +400,7 @@
     Palette.init();
     placeIssuesPanel();
     placeTransitions();
+    InlineEdit.init();
     initProjects();
   });
 })();
