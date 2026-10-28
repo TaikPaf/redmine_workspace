@@ -827,7 +827,8 @@ body.gf-issue-sidebar-moved #sidebar, body.gf-issue-sidebar-moved #sidebar-switc
   border-radius: var(--ws-radius);
   padding: 6px;
 }
-.gf-issue-sidebar { padding: 12px 14px; }
+.gf-issue-sidebar { padding: 6px; }
+.gf-issue-sidebar > p, .gf-issue-sidebar > div > p { margin-inline: 8px; }
 .gf-issue-props h3, .gf-issue-sidebar h3 {
   margin: 6px 8px !important;
   font-size: 0.6875rem !important;
@@ -836,9 +837,6 @@ body.gf-issue-sidebar-moved #sidebar, body.gf-issue-sidebar-moved #sidebar-switc
   text-transform: uppercase;
   color: var(--ws-faint) !important;
 }
-.gf-issue-sidebar h3 { margin-inline: 0 !important; }
-.gf-issue-sidebar ul { list-style: none; margin: 0; padding: 0; }
-.gf-issue-sidebar ul li { padding-block: 3px; }
 .gf-issue-props .splitcontent, .gf-issue-props .splitcontentleft, .gf-issue-props .splitcontentright,
 .gf-peek-props .splitcontent { display: block; inline-size: auto; float: none; margin: 0; padding: 0; }
 .gf-issue-props .attribute, .gf-peek-props .attribute {
