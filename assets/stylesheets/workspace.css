@@ -540,9 +540,9 @@ html[data-gf-density="compact"] .gf-issue-props .attribute { min-block-size: 28p
 }
 
 /* Note composer under the history of an issue. */
-.gf-note-composer { display: flex; align-items: flex-start; gap: 12px; max-inline-size: 760px; margin-block: 16px 8px; }
+.gf-note-composer { display: flex; align-items: flex-start; gap: 16px; max-inline-size: 760px; margin-block: 0 8px; }
 .gf-note-composer[hidden] { display: none; }
-.gf-note-composer .avatar { flex: none; inline-size: 28px; block-size: 28px; margin-block-start: 4px; }
+.gf-note-composer .avatar { flex: none; inline-size: 24px; block-size: 24px; margin: 6px 0 0; }
 .gf-note-composer .gf-peek-note-form { flex: 1; min-inline-size: 0; }
 
 /* ---------- Projects ---------- */
