@@ -26,6 +26,10 @@ module WorkspaceHelper
     end
   end
 
+  def workspace_peek_button(issue)
+    RedmineWorkspace::Icons.peek_button(issue)
+  end
+
   def workspace_project_dot(project)
     content_tag(:span, '', class: 'gf-appnav-dot', 'aria-hidden': 'true',
                 style: "background: #{RedmineWorkspace::ProjectsOverview.color_for(project)}")

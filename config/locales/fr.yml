@@ -116,3 +116,12 @@ fr:
   label_workspace_due_today: "auj."
   label_workspace_filters: Filtres
   label_workspace_display: Affichage
+  label_workspace_properties: Propriétés
+  label_workspace_peek: Aperçu
+  label_workspace_peek_of: "Aperçu de #%{id}"
+  label_workspace_peek_open: Ouvrir la demande
+  label_workspace_peek_previous: Demande précédente
+  label_workspace_peek_next: Demande suivante
+  label_workspace_add_note: Ajouter une note
+  label_workspace_ctrl_enter: Ctrl + Entrée
+  error_workspace_note_blank: La note est vide.

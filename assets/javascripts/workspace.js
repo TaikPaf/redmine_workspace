@@ -286,11 +286,60 @@
         // Rows carry both "priority-<id>" and "priority-<rank name>"; only the rank name matters here.
         var priority = self.priorityLevel(self.classValue(row, 'priority-([a-z]+[0-9]*)'));
         var isRow = row.tagName === 'TR';
-        self.decorate(row.querySelector(isRow ? 'td.status' : '.attribute.status .value'), 'status', self.categories[statusId]);
-        self.decorate(row.querySelector(isRow ? 'td.priority' : '.attribute.priority .value'), 'priority', priority);
+        // On the issue page the attributes may have been moved to the side column.
+        var scope = isRow ? row : (document.querySelector('.gf-issue-props') || row);
+        self.decorate(scope.querySelector(isRow ? 'td.status' : '.attribute.status .value'), 'status', self.categories[statusId]);
+        self.decorate(scope.querySelector(isRow ? 'td.priority' : '.attribute.priority .value'), 'priority', priority);
       });
     }
   };
+
+  /* ---------- Issue page in two columns ---------- */
+
+  // Moves the attribute block (and Redmine's sidebar on wide screens) into a sticky column on the right.
+  function placeIssueColumns(i18n) {
+    var body = document.body;
+    if (!body.classList.contains('controller-issues') || !body.classList.contains('action-show')) { return; }
+    var issue = document.querySelector('#content div.issue');
+    if (!issue) { return; }
+
+    var aside = document.querySelector('.gf-issue-aside');
+    if (!aside) {
+      var layout = el('div', 'gf-issue-layout');
+      var main = el('div', 'gf-issue-main');
+      aside = el('aside', 'gf-issue-aside');
+      aside.setAttribute('aria-label', i18n.properties || '');
+      issue.parentNode.insertBefore(layout, issue);
+      var node = issue;
+      while (node) {
+        var next = node.nextSibling;
+        main.appendChild(node);
+        node = next;
+      }
+      var props = el('section', 'gf-issue-props');
+      props.appendChild(el('h3', null, i18n.properties || ''));
+      aside.appendChild(props);
+      layout.appendChild(main);
+      layout.appendChild(aside);
+
+      var sidebar = document.getElementById('sidebar-wrapper');
+      if (sidebar && window.matchMedia('(min-width: 900px)').matches) {
+        var extra = el('div', 'gf-issue-sidebar');
+        while (sidebar.firstChild) { extra.appendChild(sidebar.firstChild); }
+        aside.appendChild(extra);
+        body.classList.add('gf-issue-sidebar-moved');
+      }
+      body.classList.add('gf-issue-columns');
+    }
+
+    var attributes = issue.querySelector('.attributes');
+    if (attributes) {
+      var section = aside.querySelector('.gf-issue-props');
+      var old = section.querySelector('.attributes');
+      if (old) { old.remove(); }
+      section.appendChild(attributes);
+    }
+  }
 
   function placeTransitions() {
     var bar = document.querySelector('.gf-transitions');
@@ -298,16 +347,20 @@
     if (bar && subject) { subject.parentNode.insertBefore(bar, subject.nextSibling); }
   }
 
-  /* ---------- In-place editing on the issue page ---------- */
+  /* ---------- In-place editing (issue page and preview) ---------- */
 
-  var InlineEdit = {
-    init: function () {
-      var config = document.getElementById('gf-inline');
-      if (!config) { return; }
-      this.url = config.getAttribute('data-url');
-      try { this.i18n = JSON.parse(config.getAttribute('data-i18n')) || {}; } catch (e) { this.i18n = {}; }
+  // root: element holding the ".attributes .attribute.<key> .value" blocks; onSaved: called after each save.
+  function InlineEdit(root, url, i18n, onSaved) {
+    this.root = root;
+    this.url = url;
+    this.i18n = i18n || {};
+    this.onSaved = onSaved;
+  }
+
+  InlineEdit.prototype = {
+    load: function () {
       var self = this;
-      window.fetch(this.url, {headers: {Accept: 'application/json'}, credentials: 'same-origin'})
+      return window.fetch(this.url, {headers: {Accept: 'application/json'}, credentials: 'same-origin'})
         .then(function (r) { return r.ok ? r.json() : null; })
         .then(function (data) { if (data) { self.decorate(data); } })
         .catch(function () {});
@@ -317,7 +370,7 @@
       var self = this;
       this.lockVersion = data.lock_version;
       Object.keys(data.fields).forEach(function (key) {
-        var block = document.querySelector('div.issue .attributes .attribute.' + CSS.escape(key));
+        var block = self.root.querySelector('.attributes .attribute.' + CSS.escape(key));
         var value = block && block.querySelector('.value');
         if (!value) { return; }
         value.classList.add('gf-editable');
@@ -383,7 +436,7 @@
         editor.disabled = true;
         value.classList.add('gf-saving');
         self.save(field, editor.value).then(function () {
-          return self.refresh();
+          return self.onSaved();
         }).catch(function (message) {
           value.innerHTML = original;
           value.classList.remove('gf-editing', 'gf-saving');
@@ -419,6 +472,28 @@
       });
     },
 
+    showError: function (value, message) {
+      var note = el('div', 'gf-inline-error', message || this.i18n.error);
+      note.setAttribute('role', 'alert');
+      value.appendChild(note);
+      window.setTimeout(function () { note.remove(); }, 6000);
+    }
+  };
+
+  var IssuePage = {
+    init: function (i18n) {
+      this.i18n = i18n || this.i18n || {};
+      placeIssueColumns(this.i18n);
+      placeTransitions();
+      Icons.apply();
+      var config = document.getElementById('gf-inline');
+      if (!config) { return; }
+      var configI18n;
+      try { configI18n = JSON.parse(config.getAttribute('data-i18n')) || {}; } catch (e) { configI18n = {}; }
+      new InlineEdit(document.querySelector('.gf-issue-props') || document.querySelector('div.issue'),
+        config.getAttribute('data-url'), configI18n, IssuePage.refresh).load();
+    },
+
     // Reloads the issue block and history so derived values and the journal stay accurate.
     refresh: function () {
       return window.fetch(window.location.href, {credentials: 'same-origin', headers: {Accept: 'text/html'}})
@@ -430,17 +505,195 @@
             var current = document.querySelector(selector);
             if (fresh && current) { current.replaceWith(document.importNode(fresh, true)); }
           });
-          placeTransitions();
-          Icons.apply();
-          InlineEdit.init();
+          IssuePage.init();
+        });
+    }
+  };
+
+  /* ---------- Side preview of an issue ---------- */
+
+  var PEEK_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M14 4v16"/></svg>';
+
+  var Peek = {
+    init: function (nav, i18n) {
+      this.urlTemplate = nav.getAttribute('data-peek-url');
+      this.i18n = i18n;
+      var self = this;
+      // Capture phase, so the click neither selects the list row nor starts a kanban drag.
+      ['mousedown', 'click'].forEach(function (type) {
+        document.addEventListener(type, function (e) {
+          var button = e.target.closest && e.target.closest('[data-gf-peek]');
+          if (!button) { return; }
+          e.stopPropagation();
+          if (type === 'click') {
+            e.preventDefault();
+            self.open(button.getAttribute('data-gf-peek'), button);
+          }
+        }, true);
+      });
+      document.addEventListener('keydown', function (e) { if (self.panel) { self.onKey(e); } });
+      this.addListButtons();
+    },
+
+    label: function (id) {
+      return (this.i18n.peek_of || '').replace('__ID__', id);
+    },
+
+    addListButtons: function () {
+      var self = this;
+      document.querySelectorAll('tr.issue[id^="issue-"] td.subject').forEach(function (cell) {
+        if (cell.querySelector('[data-gf-peek]')) { return; }
+        var id = cell.parentNode.id.replace('issue-', '');
+        var button = el('button', 'gf-peek-btn');
+        button.type = 'button';
+        button.setAttribute('data-gf-peek', id);
+        button.setAttribute('aria-label', self.label(id));
+        button.title = self.label(id);
+        button.innerHTML = PEEK_ICON;
+        cell.appendChild(button);
+      });
+    },
+
+    ids: function () {
+      var seen = [];
+      document.querySelectorAll('[data-gf-peek]').forEach(function (node) {
+        var id = node.getAttribute('data-gf-peek');
+        if (seen.indexOf(id) < 0) { seen.push(id); }
+      });
+      return seen;
+    },
+
+    iconButton: function (className, label, svg) {
+      var button = el('button', 'gf-peek-tool ' + className);
+      button.type = 'button';
+      button.setAttribute('aria-label', label);
+      button.title = label;
+      button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + svg + '</svg>';
+      return button;
+    },
+
+    build: function () {
+      var self = this;
+      this.panel = el('aside', 'gf-peek');
+      this.panel.setAttribute('role', 'dialog');
+      this.panel.setAttribute('aria-labelledby', 'gf-peek-title');
+      var bar = el('div', 'gf-peek-toolbar');
+      bar.appendChild(el('span', 'gf-peek-name', this.i18n.peek || ''));
+      this.prev = this.iconButton('gf-peek-prev', this.i18n.peek_previous || '', '<path d="m18 15-6-6-6 6"/>');
+      this.next = this.iconButton('gf-peek-next', this.i18n.peek_next || '', '<path d="m6 9 6 6 6-6"/>');
+      this.link = el('a', 'gf-peek-tool gf-peek-link');
+      this.link.setAttribute('aria-label', this.i18n.peek_open || '');
+      this.link.title = this.i18n.peek_open || '';
+      this.link.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
+      this.closeButton = this.iconButton('gf-peek-close', this.i18n.close || '', '<path d="M6 6l12 12M18 6 6 18"/>');
+      [this.prev, this.next, this.link, this.closeButton].forEach(function (node) { bar.appendChild(node); });
+      this.content = el('div', 'gf-peek-content');
+      this.panel.appendChild(bar);
+      this.panel.appendChild(this.content);
+      document.body.appendChild(this.panel);
+      document.body.classList.add('gf-peek-open');
+      this.prev.addEventListener('click', function () { self.step(-1); });
+      this.next.addEventListener('click', function () { self.step(1); });
+      this.closeButton.addEventListener('click', function () { self.close(); });
+      this.changed = false;
+    },
+
+    open: function (id, trigger) {
+      if (!this.panel) {
+        this.build();
+        this.trigger = trigger || document.activeElement;
+      }
+      this.id = String(id);
+      var ids = this.ids();
+      var index = ids.indexOf(this.id);
+      this.prev.disabled = index <= 0;
+      this.next.disabled = index < 0 || index >= ids.length - 1;
+      this.load(true);
+    },
+
+    load: function (focus) {
+      var self = this;
+      var id = this.id;
+      return window.fetch(this.urlTemplate.replace('__ID__', id), {credentials: 'same-origin', headers: {Accept: 'text/html'}})
+        .then(function (r) { return r.ok ? r.text() : Promise.reject(); })
+        .then(function (html) {
+          if (!self.panel || self.id !== id) { return; }
+          self.content.innerHTML = html;
+          var body = self.content.querySelector('.gf-peek-body');
+          self.link.href = body.getAttribute('data-issue-url');
+          new InlineEdit(body, body.getAttribute('data-inline-url'), self.i18n, function () {
+            self.changed = true;
+            return self.load(false);
+          }).load();
+          self.bindNoteForm(body);
+          if (focus) {
+            var title = self.content.querySelector('#gf-peek-title');
+            title.setAttribute('tabindex', '-1');
+            title.focus();
+          }
+        })
+        .catch(function () {
+          if (self.panel) { self.content.innerHTML = ''; self.content.appendChild(el('p', 'gf-inline-error', self.i18n.error || '')); }
         });
     },
 
-    showError: function (value, message) {
-      var note = el('div', 'gf-inline-error', message || this.i18n.error);
-      note.setAttribute('role', 'alert');
-      value.appendChild(note);
-      window.setTimeout(function () { note.remove(); }, 6000);
+    bindNoteForm: function (body) {
+      var self = this;
+      var form = body.querySelector('.gf-peek-note-form');
+      if (!form) { return; }
+      var textarea = form.querySelector('textarea');
+      textarea.addEventListener('keydown', function (e) {
+        // Redmine's own Ctrl+Enter handler would submit the form natively, bypassing the listener below.
+        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); e.stopPropagation(); form.requestSubmit(); }
+      });
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        if (!textarea.value.trim()) { textarea.focus(); return; }
+        var button = form.querySelector('button[type=submit]');
+        button.disabled = true;
+        window.fetch(body.getAttribute('data-notes-url'), {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: {Accept: 'application/json', 'X-CSRF-Token': csrfToken()},
+          body: new URLSearchParams(new FormData(form))
+        }).then(function (r) {
+          return r.json().catch(function () { return {}; }).then(function (data) {
+            if (!r.ok) { throw (data && data.error) || self.i18n.error; }
+            self.changed = true;
+            return self.load(false);
+          });
+        }).catch(function (message) {
+          button.disabled = false;
+          var note = el('p', 'gf-inline-error', message || self.i18n.error);
+          note.setAttribute('role', 'alert');
+          form.appendChild(note);
+        });
+      });
+    },
+
+    step: function (delta) {
+      var ids = this.ids();
+      var next = ids[ids.indexOf(this.id) + delta];
+      if (next) { this.open(next); }
+    },
+
+    close: function () {
+      if (!this.panel) { return; }
+      this.panel.remove();
+      this.panel = null;
+      document.body.classList.remove('gf-peek-open');
+      if (this.changed) { window.location.reload(); return; }
+      if (this.trigger && this.trigger.focus) { this.trigger.focus(); }
+    },
+
+    onKey: function (e) {
+      if (e.defaultPrevented) { return; }
+      var typing = e.target.closest && e.target.closest('input, textarea, select, [contenteditable]');
+      if (e.key === 'Escape' && !typing) { e.preventDefault(); this.close(); }
+      else if (!typing && this.panel.contains(e.target) && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+        e.preventDefault();
+        this.step(e.key === 'ArrowUp' ? -1 : 1);
+      }
     }
   };
 
@@ -499,10 +752,12 @@
   document.addEventListener('DOMContentLoaded', function () {
     if (document.getElementById('gf-appnav')) { document.body.classList.add('gf-has-appnav'); }
     Palette.init();
+    var nav = document.getElementById('gf-appnav');
+    var i18n = {};
+    if (nav) { try { i18n = JSON.parse(nav.getAttribute('data-i18n')) || {}; } catch (e) { i18n = {}; } }
     placeIssuesPanel();
-    placeTransitions();
-    Icons.apply();
-    InlineEdit.init();
+    IssuePage.init(i18n);
+    if (nav) { Peek.init(nav, i18n); }
     initProjects();
   });
 })();

@@ -7,6 +7,46 @@ class WorkspaceIssuesControllerTest < Redmine::ControllerTest
     @request.session[:user_id] = 2
   end
 
+  def test_peek
+    get :peek, params: {id: 1}
+    assert_response :success
+    assert_select '.gf-peek-body[data-inline-url=?]', '/workspace/issues/1/inline'
+    assert_select '#gf-peek-title', text: Issue.find(1).subject
+    assert_select '.gf-peek-props .attribute.status .gf-status svg'
+    assert_select '.gf-peek-props .attribute.priority .gf-prio svg'
+    assert_select '.gf-peek-note-form textarea[name=notes]'
+  end
+
+  def test_peek_of_missing_issue
+    get :peek, params: {id: 999}
+    assert_response :not_found
+  end
+
+  def test_add_note
+    assert_difference 'Journal.count' do
+      post :add_note, params: {id: 1, notes: 'Une note depuis l’aperçu'}, xhr: true
+    end
+    assert_response :success
+    assert_equal 'Une note depuis l’aperçu', Journal.last.notes
+    assert_equal 2, Journal.last.user_id
+  end
+
+  def test_add_blank_note
+    assert_no_difference 'Journal.count' do
+      post :add_note, params: {id: 1, notes: '  '}, xhr: true
+    end
+    assert_response :unprocessable_content
+  end
+
+  def test_add_note_without_permission
+    Role.find(1).remove_permission!(:add_issue_notes)
+    Role.find(1).remove_permission!(:edit_issues)
+    assert_no_difference 'Journal.count' do
+      post :add_note, params: {id: 1, notes: 'Non'}, xhr: true
+    end
+    assert_response :forbidden
+  end
+
   def test_fields
     get :fields, params: {id: 1}
     assert_response :success

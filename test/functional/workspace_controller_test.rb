@@ -20,6 +20,7 @@ class WorkspaceControllerTest < Redmine::ControllerTest
     assert_select '.gf-issue-row', minimum: 1
     assert_select '.gf-issue-row .gf-status svg.gf-icon', minimum: 1
     assert_select '.gf-issue-row .gf-prio svg.gf-icon', minimum: 1
+    assert_select '.gf-issue-item button.gf-peek-btn[data-gf-peek]', minimum: 1
   end
 
   def test_index_tabs

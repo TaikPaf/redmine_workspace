@@ -14,7 +14,16 @@
 <% end %>
 <nav id="gf-appnav" aria-label="<%= l(:label_workspace_navigation) %>"
      data-palette-url="<%= workspace_palette_path(project_id: @project&.id) %>"
+     data-peek-url="<%= workspace_issue_peek_path(id: '__ID__') %>"
      data-i18n="<%= {
+       peek: l(:label_workspace_peek),
+       peek_of: l(:label_workspace_peek_of, id: '__ID__'),
+       peek_open: l(:label_workspace_peek_open),
+       peek_previous: l(:label_workspace_peek_previous),
+       peek_next: l(:label_workspace_peek_next),
+       properties: l(:label_workspace_properties),
+       edit: l(:label_workspace_inline_edit),
+       error: l(:error_workspace_inline_failed),
        placeholder: l(:label_workspace_palette_placeholder),
        empty: l(:label_workspace_palette_empty),
        hint_navigate: l(:label_workspace_palette_hint_navigate),

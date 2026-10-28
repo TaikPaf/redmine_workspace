@@ -1,0 +1,82 @@
+<% dash = content_tag(:span, '—', class: 'gf-muted') %>
+<div class="gf-peek-body"
+     data-inline-url="<%= workspace_issue_inline_path(issue) %>"
+     data-notes-url="<%= workspace_issue_notes_path(issue) %>"
+     data-issue-url="<%= issue_path(issue) %>"
+     data-issue-id="<%= issue.id %>">
+  <header class="gf-peek-header">
+    <p class="gf-peek-crumbs">
+      <%= workspace_project_dot(issue.project) %>
+      <span><%= issue.project %></span>
+      <span aria-hidden="true">·</span>
+      <span><%= issue.tracker %> #<%= issue.id %></span>
+    </p>
+    <h2 id="gf-peek-title"><%= issue.subject %></h2>
+    <p class="gf-muted gf-small"><%= authoring(issue.created_on, issue.author) %>.<% if issue.updated_on != issue.created_on %> <%= l(:label_updated_time, distance_of_time_in_words(Time.now, issue.updated_on)) %>.<% end %></p>
+  </header>
+
+  <div class="attributes gf-peek-props">
+    <% rows = [] %>
+    <% rows << ['status', l(:field_status), RedmineWorkspace::Icons.status(issue.status)] %>
+    <% rows << ['priority', l(:field_priority), RedmineWorkspace::Icons.priority(issue.priority)] %>
+    <% rows << ['assigned-to', l(:field_assigned_to), issue.assigned_to ? safe_join([avatar(issue.assigned_to, size: 20), link_to_user(issue.assigned_to)], ' ') : dash] %>
+    <% rows << ['category', l(:field_category), issue.category ? h(issue.category) : dash] if issue.project.issue_categories.any? %>
+    <% rows << ['fixed-version', l(:field_fixed_version), issue.fixed_version ? link_to_version(issue.fixed_version) : dash] %>
+    <% rows << ['start-date', l(:field_start_date), issue.start_date ? format_date(issue.start_date) : dash] %>
+    <% rows << ['due-date', l(:field_due_date), issue.due_date ? safe_join([format_date(issue.due_date), ' ', workspace_due_tag(issue)]) : dash] %>
+    <% rows << ['progress', l(:field_done_ratio), "#{issue.done_ratio} %"] %>
+    <% rows << ['estimated-hours', l(:field_estimated_hours), issue.estimated_hours ? "#{format_hours(issue.estimated_hours)} h" : dash] %>
+    <% if User.current.allowed_to?(:view_time_entries, issue.project) && issue.total_spent_hours > 0 %>
+      <% rows << ['spent-time', l(:label_spent_time), "#{format_hours(issue.total_spent_hours)} h"] %>
+    <% end %>
+    <% rows.each do |key, label, value| %>
+      <div class="attribute <%= key %>">
+        <div class="label"><%= label %></div>
+        <div class="value"><%= value %></div>
+      </div>
+    <% end %>
+  </div>
+
+  <% if issue.description.present? %>
+    <section class="gf-peek-section" aria-labelledby="gf-peek-desc">
+      <h3 id="gf-peek-desc"><%= l(:field_description) %></h3>
+      <div class="wiki"><%= textilizable(issue, :description, attachments: issue.attachments) %></div>
+    </section>
+  <% end %>
+
+  <section class="gf-peek-section" aria-labelledby="gf-peek-notes">
+    <h3 id="gf-peek-notes"><%= l(:label_history) %></h3>
+    <% if notes.empty? %>
+      <p class="gf-muted gf-small"><%= l(:label_no_data) %></p>
+    <% else %>
+      <ol class="gf-peek-notes">
+        <% notes.each do |journal| %>
+          <li>
+            <%= avatar(journal.user, size: 24) %>
+            <div class="gf-peek-note">
+              <p class="gf-muted gf-small">
+                <strong><%= journal.user %></strong> · <%= l(:label_workspace_ago, time: distance_of_time_in_words(Time.now, journal.created_on)) %>
+                <% if journal.private_notes? %> · <%= l(:field_is_private) %><% end %>
+              </p>
+              <div class="wiki"><%= textilizable(journal, :notes) %></div>
+            </div>
+          </li>
+        <% end %>
+      </ol>
+    <% end %>
+
+    <% if issue.notes_addable? %>
+      <%= form_tag(workspace_issue_notes_path(issue), method: :post, class: 'gf-peek-note-form') do %>
+        <label class="gf-visually-hidden" for="gf-peek-note"><%= l(:label_workspace_add_note) %></label>
+        <textarea id="gf-peek-note" name="notes" rows="3" placeholder="<%= l(:label_workspace_add_note) %>…"></textarea>
+        <div class="gf-peek-note-actions">
+          <% if User.current.allowed_to?(:set_notes_private, issue.project) %>
+            <label class="gf-small gf-muted"><input type="checkbox" name="private_notes" value="1"> <%= l(:field_private_notes) %></label>
+          <% end %>
+          <span class="gf-small gf-muted"><%= l(:label_workspace_ctrl_enter) %></span>
+          <button type="submit" class="gf-button gf-button-primary"><%= l(:button_submit) %></button>
+        </div>
+      <% end %>
+    <% end %>
+  </section>
+</div>

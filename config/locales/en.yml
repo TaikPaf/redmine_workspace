@@ -116,3 +116,12 @@ en:
   label_workspace_due_today: today
   label_workspace_filters: Filters
   label_workspace_display: Display
+  label_workspace_properties: Properties
+  label_workspace_peek: Preview
+  label_workspace_peek_of: "Preview of #%{id}"
+  label_workspace_peek_open: Open the issue
+  label_workspace_peek_previous: Previous issue
+  label_workspace_peek_next: Next issue
+  label_workspace_add_note: Add a note
+  label_workspace_ctrl_enter: Ctrl + Enter
+  error_workspace_note_blank: The note is empty.

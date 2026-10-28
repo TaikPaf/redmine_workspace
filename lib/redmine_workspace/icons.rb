@@ -65,6 +65,14 @@ module RedmineWorkspace
       (html << '</span>').html_safe
     end
 
+    # Opens the side preview of the issue; also used on kanban cards.
+    def peek_button(issue)
+      label = ERB::Util.h(::I18n.t(:label_workspace_peek_of, id: issue.id))
+      (%(<button type="button" class="gf-peek-btn" data-gf-peek="#{issue.id}" aria-label="#{label}" title="#{label}">) +
+        %(<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M14 4v16"/></svg>) +
+        %(</button>)).html_safe
+    end
+
     def svg(inner)
       %(<svg class="gf-icon" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false">#{inner}</svg>)
     end
