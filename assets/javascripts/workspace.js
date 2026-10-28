@@ -73,9 +73,17 @@
         if (hint) { footer.appendChild(el('span', null, hint)); }
       });
 
+      this.preview = el('aside', 'gf-palette-preview');
+      this.preview.setAttribute('aria-live', 'polite');
+      this.preview.hidden = true;
+      var body = el('div', 'gf-palette-body');
+      body.appendChild(this.results);
+      body.appendChild(this.preview);
+
       dialog.appendChild(inputRow);
-      dialog.appendChild(this.results);
+      dialog.appendChild(body);
       dialog.appendChild(footer);
+      this.dialog = dialog;
       this.backdrop.appendChild(dialog);
       document.body.appendChild(this.backdrop);
 
@@ -118,6 +126,7 @@
       this.results.innerHTML = '';
       if (!sections.length) {
         this.results.appendChild(el('p', 'gf-palette-empty', this.i18n.empty || ''));
+        this.showPreview(null);
         return;
       }
       sections.forEach(function (section) {
@@ -155,13 +164,45 @@
       var current = this.items[this.selected].node;
       this.input.setAttribute('aria-activedescendant', current.id);
       current.scrollIntoView({block: 'nearest'});
+      this.showPreview(this.items[this.selected].data.preview);
+    },
+
+    showPreview: function (data) {
+      var pane = this.preview;
+      pane.innerHTML = '';
+      pane.hidden = !data;
+      this.dialog.classList.toggle('gf-has-preview', !!data);
+      if (!data) { return; }
+      var context = el('p', 'gf-palette-preview-context', data.context);
+      pane.appendChild(context);
+      pane.appendChild(el('h3', null, data.title));
+      var list = el('dl');
+      data.rows.forEach(function (row, index) {
+        var line = el('div');
+        line.appendChild(el('dt', null, row[0]));
+        var value = el('dd', null, row[1]);
+        if (index === 0 && (Icons.content || Icons.load())) {
+          var icon = Icons.svg('data-status', data.status_category);
+          if (icon) {
+            var wrap = el('span', 'gf-status gf-status-' + data.status_category);
+            wrap.appendChild(icon);
+            wrap.appendChild(el('span', null, row[1]));
+            value.textContent = '';
+            value.appendChild(wrap);
+          }
+        }
+        line.appendChild(value);
+        list.appendChild(line);
+      });
+      pane.appendChild(list);
+      if (data.excerpt) { pane.appendChild(el('p', 'gf-palette-preview-excerpt', data.excerpt)); }
     },
 
     activate: function (index) {
       var item = this.items && this.items[index];
       if (!item) { return; }
       if (item.data.js === 'toggle-theme') {
-        var toggle = document.querySelector('.gf-theme-toggle');
+        var toggle = document.querySelector('.gf-theme-toggle:not(.gf-density-toggle)');
         if (toggle) { toggle.click(); }
         this.close();
       } else if (item.data.js === 'issue-update') {

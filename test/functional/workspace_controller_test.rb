@@ -100,6 +100,9 @@ class WorkspaceControllerTest < Redmine::ControllerTest
     assert_includes titles, I18n.t(:label_issue_plural)
     issue = json['sections'].first['items'].first
     assert_match '/issues/', issue['url']
+    assert issue['preview']['title'].present?
+    assert_includes RedmineWorkspace::StatusCategories::CATEGORIES, issue['preview']['status_category']
+    assert_equal I18n.t(:field_status), issue['preview']['rows'].first.first
   end
 
   def test_palette_actions

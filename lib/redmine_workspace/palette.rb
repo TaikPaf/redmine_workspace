@@ -57,7 +57,7 @@ module RedmineWorkspace
       found += Issue.visible(user).joins(:status).
         where("LOWER(#{Issue.table_name}.subject) LIKE ?", pattern).
         where.not(id: found.map(&:id)).
-        includes(:project, :status).
+        includes(:project, :status, :tracker, :priority, :assigned_to).
         reorder(Arel.sql("#{IssueStatus.table_name}.is_closed ASC, #{Issue.table_name}.updated_on DESC")).
         limit(ISSUE_LIMIT).to_a
       found.first(ISSUE_LIMIT).map {|issue| issue_item(issue)}
@@ -66,7 +66,26 @@ module RedmineWorkspace
     def issue_item(issue)
       {
         kind: 'issue', badge: issue.id.to_s, label: "##{issue.id} #{issue.subject}",
-        hint: "#{issue.project} · #{issue.status}", url: view.issue_path(issue)
+        hint: "#{issue.project} · #{issue.status}", url: view.issue_path(issue),
+        preview: issue_preview(issue)
+      }
+    end
+
+    # Shown next to the results when the issue is selected.
+    def issue_preview(issue)
+      rows = [
+        [::I18n.t(:field_status), issue.status.to_s],
+        [::I18n.t(:field_priority), issue.priority.to_s],
+        [::I18n.t(:field_assigned_to), issue.assigned_to&.name || '—'],
+        [::I18n.t(:field_due_date), issue.due_date ? ::I18n.l(issue.due_date) : '—'],
+        [::I18n.t(:field_updated_on), ::I18n.t(:label_workspace_ago, time: view.distance_of_time_in_words(Time.now, issue.updated_on))]
+      ]
+      {
+        title: issue.subject,
+        context: "#{issue.project} · #{issue.tracker} ##{issue.id}",
+        status_category: StatusCategories.category_for(issue.status),
+        rows: rows,
+        excerpt: issue.description.to_s.gsub(/\s+/, ' ').strip.truncate(280)
       }
     end
 
