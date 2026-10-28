@@ -142,6 +142,67 @@ kbd, .gf-appnav-search kbd {
 }
 .gf-appnav-dot { inline-size: 10px; block-size: 10px; border-radius: 3px; flex: none; }
 
+.gf-appnav-footer {
+  margin-block-start: auto;
+  padding-block-start: 12px;
+  border-block-start: 1px solid var(--ws-line);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.gf-appnav-more ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.gf-appnav-more a {
+  display: flex;
+  align-items: center;
+  min-block-size: 32px;
+  padding-inline: 12px;
+  border-radius: var(--ws-radius-sm);
+  color: var(--ws-muted) !important;
+  font-size: 0.8125rem;
+  text-decoration: none !important;
+}
+.gf-appnav-more a:hover { background: var(--ws-hover); color: var(--ws-text) !important; }
+/* Already covered by the main links above. */
+.gf-appnav-more a.home, .gf-appnav-more a.my-page, .gf-appnav-more a.projects, .gf-appnav-more a.workspace { display: none; }
+.gf-appnav-account { display: flex; align-items: center; gap: 4px; padding-inline: 4px; }
+.gf-appnav-user {
+  flex: 1;
+  min-inline-size: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  border-radius: var(--ws-radius-sm);
+  color: var(--ws-text) !important;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  text-decoration: none !important;
+}
+.gf-appnav-user:hover { background: var(--ws-hover); }
+.gf-appnav-user span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gf-appnav-user .avatar { flex: none; inline-size: 28px; block-size: 28px; }
+.gf-appnav-icon-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 32px;
+  block-size: 32px;
+  border-radius: 8px;
+  color: var(--ws-muted) !important;
+}
+.gf-appnav-icon-link:hover { background: var(--ws-hover); color: var(--ws-text) !important; }
+.gf-appnav-icon-link svg { inline-size: 18px; block-size: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* With the side navigation, the top bar and the header search are redundant. */
+@media screen and (min-width: 1100px) {
+  body.gf-has-appnav #top-menu,
+  body:has(> #gf-appnav) #top-menu,
+  body.gf-has-appnav #header #quick-search,
+  body:has(> #gf-appnav) #header #quick-search { display: none; }
+  body.controller-workspace #header { display: none; }
+  body.gf-has-appnav #sidebar, body:has(> #gf-appnav) #sidebar { inset-block-start: 16px; max-block-size: calc(100vh - 32px); }
+}
+
 /* ---------- Shared page pieces ---------- */
 
 .gf-page { display: flex; flex-direction: column; gap: 18px; }

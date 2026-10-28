@@ -57,5 +57,18 @@
       <% end %>
     </ul>
   <% end %>
+  <div class="gf-appnav-footer">
+    <div class="gf-appnav-more"><%= render_menu(:top_menu) %></div>
+    <div class="gf-appnav-account">
+      <%= link_to my_account_path, class: 'gf-appnav-user', title: l(:label_my_account) do %>
+        <%= avatar(nav_user, size: 28) %>
+        <span><%= nav_user.name %></span>
+      <% end %>
+      <span class="gf-theme-toggle-slot"></span>
+      <%= link_to signout_path, method: :post, class: 'gf-appnav-icon-link', title: l(:label_logout), 'aria-label': l(:label_logout) do %>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
+      <% end %>
+    </div>
+  </div>
 </nav>
 <% end %>
