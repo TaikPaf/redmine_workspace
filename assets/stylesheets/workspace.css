@@ -1,4 +1,7 @@
 :root {
+  --ws-bg: var(--gf-bg, #f7f7f5);
+  --ws-selected: var(--gf-selected, #e9edfc);
+  --ws-faint: var(--gf-faint, #6e7077);
   --ws-glass: var(--gf-glass, #fff);
   --ws-glass-strong: var(--gf-glass-strong, #fff);
   --ws-surface: var(--gf-surface, #f7f8fa);
@@ -46,25 +49,23 @@
 
 #gf-appnav { display: none; }
 @media screen and (min-width: 1100px) {
-  body.gf-has-appnav #wrapper, body:has(> #gf-appnav) #wrapper { margin-inline-start: 248px; }
+  body.gf-has-appnav #wrapper, body:has(> #gf-appnav) #wrapper {
+    margin-inline-start: 240px;
+    border-inline-start: 1px solid var(--ws-line);
+  }
   #gf-appnav {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 2px;
     position: fixed;
     z-index: 40;
-    inset-block: 16px;
-    inset-inline-start: 16px;
-    inline-size: 232px;
+    inset-block: 0;
+    inset-inline-start: 0;
+    inline-size: 240px;
     box-sizing: border-box;
-    padding: 18px 12px;
+    padding: 12px 10px;
     overflow-y: auto;
-    border-radius: var(--ws-radius);
-    background: var(--ws-glass);
-    border: 1px solid var(--ws-border);
-    box-shadow: var(--ws-shadow);
-    -webkit-backdrop-filter: var(--ws-blur);
-    backdrop-filter: var(--ws-blur);
+    background: var(--ws-bg);
     font-size: 0.875rem;
   }
 }
@@ -72,17 +73,17 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 2px 10px 14px;
-  font-weight: 700;
-  font-size: 1rem;
+  padding: 6px 10px;
+  font-weight: 600;
+  font-size: 0.9375rem;
   color: var(--ws-text) !important;
   text-decoration: none !important;
 }
 .gf-appnav-logo {
-  inline-size: 30px;
-  block-size: 30px;
-  border-radius: 9px;
-  background: linear-gradient(135deg, #4f8bff, #2fc7b0);
+  inline-size: 22px;
+  block-size: 22px;
+  border-radius: 6px;
+  background: var(--ws-accent-solid);
   flex: none;
 }
 .gf-appnav-search {
@@ -90,23 +91,26 @@
   align-items: center;
   gap: 8px;
   inline-size: 100%;
-  min-block-size: 40px !important;
-  margin-block-end: 10px;
-  padding-inline: 12px !important;
+  min-block-size: 32px !important;
+  margin-block: 8px 12px;
+  padding-inline: 10px 6px !important;
   border-radius: var(--ws-radius-sm);
-  border: 1px solid var(--ws-line-strong);
+  border: 1px solid var(--ws-line-strong) !important;
   background: var(--ws-surface) !important;
   color: var(--ws-muted);
   font: inherit;
+  font-size: 0.8125rem;
   cursor: pointer;
   text-align: start;
 }
-.gf-appnav-search:hover { border-color: var(--ws-accent-solid); color: var(--ws-text); }
+.gf-appnav-search:hover { border-color: var(--ws-faint) !important; color: var(--ws-text); }
 .gf-appnav-search span { flex: 1; }
+.gf-appnav-search svg { inline-size: 14px; block-size: 14px; }
 .gf-appnav-search svg, .gf-appnav-link svg {
-  inline-size: 18px; block-size: 18px; flex: none;
+  flex: none;
   fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
 }
+.gf-appnav-link svg { inline-size: 16px; block-size: 16px; }
 kbd, .gf-appnav-search kbd {
   font-family: inherit;
   font-size: 0.6875rem;
@@ -121,30 +125,31 @@ kbd, .gf-appnav-search kbd {
   display: flex;
   align-items: center;
   gap: 10px;
-  min-block-size: 38px;
-  padding-inline: 12px;
+  min-block-size: 32px;
+  padding-inline: 10px;
   border-radius: var(--ws-radius-sm);
-  color: var(--ws-text) !important;
+  color: var(--ws-muted) !important;
+  font-weight: 500;
   text-decoration: none !important;
 }
-.gf-appnav-link:hover { background: var(--ws-hover); }
-.gf-appnav-link.active { background: var(--ws-accent-soft); color: var(--ws-accent) !important; font-weight: 600; }
+.gf-appnav-link:hover { background: var(--ws-hover); color: var(--ws-text) !important; }
+.gf-appnav-link.active { background: var(--ws-selected); color: var(--ws-text) !important; font-weight: 600; }
 .gf-appnav-link span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .gf-appnav-heading {
-  margin: 18px 12px 4px !important;
+  margin: 20px 10px 4px !important;
   padding: 0 !important;
   font-size: 0.6875rem !important;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--ws-muted) !important;
+  letter-spacing: 0.04em;
+  color: var(--ws-faint) !important;
   border: 0 !important;
 }
-.gf-appnav-dot { inline-size: 10px; block-size: 10px; border-radius: 3px; flex: none; }
+.gf-appnav-dot { inline-size: 8px; block-size: 8px; border-radius: 3px; flex: none; }
 
 .gf-appnav-footer {
   margin-block-start: auto;
-  padding-block-start: 12px;
+  padding-block-start: 10px;
   border-block-start: 1px solid var(--ws-line);
   display: flex;
   flex-direction: column;
@@ -200,7 +205,6 @@ kbd, .gf-appnav-search kbd {
   body.gf-has-appnav #header #quick-search,
   body:has(> #gf-appnav) #header #quick-search { display: none; }
   body.controller-workspace #header { display: none; }
-  body.gf-has-appnav #sidebar, body:has(> #gf-appnav) #sidebar { inset-block-start: 16px; max-block-size: calc(100vh - 32px); }
 }
 
 /* ---------- Shared page pieces ---------- */
@@ -441,7 +445,7 @@ html[data-gf-theme="dark"] .gf-tone-gray { color: #c3ccda; }
 .gf-version-head { display: flex; justify-content: space-between; gap: 8px; font-size: 0.8125rem; margin-block-end: 6px; }
 .gf-version-head a { font-weight: 600; color: var(--ws-text); }
 .gf-progress { block-size: 6px; border-radius: 999px; overflow: hidden; background: var(--ws-line); }
-.gf-progress span { display: block; block-size: 100%; border-radius: 999px; background: linear-gradient(90deg, #4f8bff, #2fc7b0); }
+.gf-progress span { display: block; block-size: 100%; border-radius: 999px; background: var(--ws-accent-solid); }
 .gf-project-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-block-start: auto; }
 .gf-project-links { display: flex; gap: 12px; font-weight: 600; font-size: 0.8125rem; }
 
@@ -521,9 +525,7 @@ html[data-gf-theme="dark"] .gf-tone-gray { color: #c3ccda; }
   justify-content: center;
   align-items: flex-start;
   padding: 10vh 16px 16px;
-  background: rgba(6, 9, 18, 0.45);
-  -webkit-backdrop-filter: blur(4px);
-  backdrop-filter: blur(4px);
+  background: rgba(16, 17, 20, 0.4);
 }
 .gf-palette {
   inline-size: min(640px, 100%);
