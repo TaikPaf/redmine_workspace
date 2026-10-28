@@ -7,15 +7,15 @@ Il est conçu pour aller avec le thème [Glassfluid](https://github.com/TaikPaf/
 ## Fonctionnalités
 
 - **Mon espace** (`/workspace`) :
-  - vos demandes ouvertes classées par urgence (en retard, cette semaine, plus tard, sans échéance) ;
+  - vos demandes ouvertes classées par urgence (en retard, cette semaine, plus tard, sans échéance), avec des échéances relatives (« -3 j », « ven. ») ;
   - les onglets *Assignées à moi*, *J'ai créé* et *Je surveille* ;
-  - ce qui a changé sur vos demandes depuis votre dernière visite ;
-  - les demandes consultées récemment et vos projets favoris.
+  - l'onglet *Activité* : ce qui a changé sur vos demandes depuis votre dernière visite.
 
   Option : en faire la page d'accueil des utilisateurs connectés.
 - **Projets** (`/workspace/projects`) : une carte par projet avec les demandes ouvertes, assignées à vous et en retard, et l'avancement de la version en cours. L'étoile ajoute un projet aux favoris de Redmine. On peut filtrer par nom, favoris, « mes projets » ou « avec du retard ».
 - **Vues rapides** au-dessus de chaque liste de demandes : *Mes demandes*, *Mes retards*, *En retard*, *Non assignées*, *Priorité haute*, *Mises à jour cette semaine*, *Je surveille*, avec leur nombre.
-- **Recherche en langage simple** : par exemple `moi en retard prio:haute export`. La ligne « Compris : » montre comment la phrase a été interprétée, et chaque critère se retire d'un clic. Les filtres classiques restent disponibles, repliés.
+- **Recherche en langage simple** : par exemple `moi en retard prio:haute export`. La ligne « Compris : » montre comment la phrase a été interprétée, et chaque critère se retire d'un clic. Les filtres et options d'affichage classiques de Redmine restent disponibles derrière les boutons *Filtres* (avec le nombre de filtres actifs) et *Affichage*.
+- **Icônes de statut et de priorité**, identiques dans Mon espace, les listes de demandes, la page d'une demande et le Kanban. Chaque statut appartient à une catégorie (Backlog, À faire, En cours, En revue, Terminé, Annulé) qui a son icône et sa couleur. Les catégories sont devinées à partir du nom des statuts et se règlent dans la configuration du plugin. La priorité s'affiche en barres (1 à 3), avec une icône rouge pour les deux plus hautes.
 - **Palette Ctrl+K** (⌘K sur Mac), sur toutes les pages : aller à une demande (`#123`), à un projet, chercher dans les sujets, lancer une action (`>`).
 - **Navigation de gauche** (écrans de 1100 px et plus) : Mon espace, Projets, Demandes, Kanban, Temps passé et projets favoris.
 - **Changement de statut en un clic** sur la page d'une demande (« Passer à : »). Seuls les statuts autorisés par le workflow sont proposés.
@@ -44,7 +44,7 @@ cd /chemin/vers/redmine/plugins
 git clone https://github.com/TaikPaf/redmine_workspace.git
 ```
 
-Redémarrez Redmine. Le plugin n'a pas de migration de base de données : il utilise les préférences utilisateur de Redmine. L'option « Mon espace comme page d'accueil » se trouve dans *Administration → Plugins → Redmine Workspace → Configurer*.
+Redémarrez Redmine. Le plugin n'a pas de migration de base de données : il utilise les préférences utilisateur de Redmine. L'option « Mon espace comme page d'accueil » et les catégories de statut se trouvent dans *Administration → Plugins → Redmine Workspace → Configurer*.
 
 ## Développement
 

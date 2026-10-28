@@ -70,5 +70,13 @@
       <% end %>
     </div>
   </div>
+  <template id="gf-icon-templates" data-status-categories="<%= RedmineWorkspace::StatusCategories.map.to_json %>">
+    <% RedmineWorkspace::StatusCategories::CATEGORIES.each do |category| %>
+      <span data-status="<%= category %>"><%= RedmineWorkspace::Icons.status_svg(category).html_safe %></span>
+    <% end %>
+    <% RedmineWorkspace::Icons::PRIORITY_LEVELS.each do |level| %>
+      <span data-priority="<%= level %>"><%= RedmineWorkspace::Icons.priority_svg(level).html_safe %></span>
+    <% end %>
+  </template>
 </nav>
 <% end %>

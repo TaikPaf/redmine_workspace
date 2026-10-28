@@ -4,7 +4,6 @@ fr:
   label_workspace_navigation: Navigation principale
   label_workspace_hello: "Bonjour %{name}"
   label_workspace_good_evening: "Bonsoir %{name}"
-  text_workspace_summary: "%{overdue} demandes en retard, %{week} à rendre cette semaine"
   label_workspace_bucket_overdue: En retard
   label_workspace_bucket_week: Cette semaine
   label_workspace_bucket_later: Plus tard
@@ -22,9 +21,7 @@ fr:
   text_workspace_journal_comment: "%{user} a commenté %{issue}"
   text_workspace_journal_change: "%{user} a modifié %{issue} : %{change}"
   label_workspace_ago: "il y a %{time}"
-  label_workspace_recent_issues: Consultées récemment
   label_workspace_favorite_projects: Projets favoris
-  text_workspace_no_favorites_html: "Ajoutez des favoris avec l'étoile sur la page %{link}."
   label_workspace_assigned_to_me: à moi
   label_workspace_open: ouvertes
   label_workspace_overdue: en retard
@@ -98,3 +95,24 @@ fr:
 
   label_workspace_setting_home_redirect: "« Mon espace » comme page d'accueil"
   text_workspace_setting_home_redirect: Les utilisateurs connectés arrivent sur « Mon espace » au lieu de la page d'accueil de Redmine.
+  label_workspace_setting_status_categories: Catégories de statut
+  text_workspace_setting_status_categories: Chaque catégorie a sa propre icône et sa couleur, utilisées dans Mon espace, les listes, les demandes et le Kanban.
+  label_workspace_status_category_backlog: Backlog
+  label_workspace_status_category_todo: À faire
+  label_workspace_status_category_progress: En cours
+  label_workspace_status_category_review: En revue
+  label_workspace_status_category_done: Terminé
+  label_workspace_status_category_cancelled: Annulé
+
+  label_workspace_summary_overdue:
+    one: "1 en retard"
+    other: "%{count} en retard"
+  label_workspace_summary_week:
+    one: "1 cette semaine"
+    other: "%{count} cette semaine"
+  label_workspace_tab_activity: Activité
+  label_workspace_new_count: "%{count} nouv."
+  label_workspace_due_late: "-%{count} j"
+  label_workspace_due_today: "auj."
+  label_workspace_filters: Filtres
+  label_workspace_display: Affichage

@@ -16,17 +16,25 @@ class WorkspaceControllerTest < Redmine::ControllerTest
   def test_index
     get :index
     assert_response :success
-    assert_select '.gf-myspace .gf-stat', 4
-    assert_select '.gf-segmented a', 3
+    assert_select '.gf-myspace .gf-tabs a', 4
     assert_select '.gf-issue-row', minimum: 1
+    assert_select '.gf-issue-row .gf-status svg.gf-icon', minimum: 1
+    assert_select '.gf-issue-row .gf-prio svg.gf-icon', minimum: 1
   end
 
   def test_index_tabs
-    %w(created watched).each do |tab|
+    %w(created watched activity).each do |tab|
       get :index, params: {tab: tab}
       assert_response :success
-      assert_select ".gf-segmented a.selected[href*='tab=#{tab}']"
+      assert_select ".gf-tabs a.selected[href*='tab=#{tab}']"
     end
+  end
+
+  def test_layout_carries_status_icon_templates
+    get :index
+    assert_select 'template#gf-icon-templates[data-status-categories]'
+    assert_select 'template#gf-icon-templates [data-status=done]'
+    assert_select 'template#gf-icon-templates [data-priority=urgent]'
   end
 
   def test_projects

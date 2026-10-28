@@ -4,3 +4,18 @@
   <%= check_box_tag 'settings[home_redirect]', '1', @settings['home_redirect'] == '1', id: 'settings_home_redirect' %>
   <em class="info"><%= l(:text_workspace_setting_home_redirect) %></em>
 </p>
+
+<fieldset class="box">
+  <legend><%= l(:label_workspace_setting_status_categories) %></legend>
+  <p class="info"><%= l(:text_workspace_setting_status_categories) %></p>
+  <% options = RedmineWorkspace::StatusCategories::CATEGORIES.map {|c| [l("label_workspace_status_category_#{c}"), c]} %>
+  <% IssueStatus.sorted.each do |status| %>
+    <p>
+      <label for="settings_status_category_<%= status.id %>"><%= status.name %></label>
+      <%= select_tag "settings[status_categories][#{status.id}]",
+                     options_for_select(options, RedmineWorkspace::StatusCategories.category_for(status)),
+                     id: "settings_status_category_#{status.id}" %>
+      <%= RedmineWorkspace::Icons.status(status, label: false) %>
+    </p>
+  <% end %>
+</fieldset>

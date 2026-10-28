@@ -180,17 +180,117 @@
 
   /* ---------- Placement of injected blocks ---------- */
 
+  // Redmine's filter and option fieldsets become two popovers opened from the plain-language search bar.
   function placeIssuesPanel() {
     var panel = document.getElementById('gf-issues-panel');
     var form = document.getElementById('query_form');
     if (!panel || !form) { return; }
     form.parentNode.insertBefore(panel, form);
-    var filters = form.querySelector('fieldset#filters');
-    if (filters && !filters.classList.contains('collapsed')) {
-      var legend = filters.querySelector('legend');
-      if (legend && typeof window.toggleFieldset === 'function') { window.toggleFieldset(legend); }
+    var search = panel.querySelector('.gf-smart-search');
+    var anchor = el('div', 'gf-query-anchor');
+    search.parentNode.insertBefore(anchor, search.nextSibling);
+    anchor.appendChild(form);
+    form.classList.add('gf-query-popover');
+
+    var toggles = panel.querySelectorAll('[data-gf-query-pane]');
+    var count = panel.querySelector('[data-gf-filter-count]');
+    // Redmine builds the filter rows in its own ready handler, which may run after this one.
+    function updateCount() {
+      if (!count) { return; }
+      var active = form.querySelectorAll('fieldset#filters input[name="f[]"]:checked').length;
+      count.textContent = active;
+      count.hidden = active === 0;
     }
+    window.setTimeout(updateCount, 0);
+    form.addEventListener('change', updateCount);
+
+    function close() {
+      form.classList.remove('gf-open');
+      toggles.forEach(function (t) { t.setAttribute('aria-expanded', 'false'); });
+    }
+    function open(pane, toggle) {
+      form.setAttribute('data-gf-pane', pane);
+      form.classList.add('gf-open');
+      toggles.forEach(function (t) { t.setAttribute('aria-expanded', t === toggle ? 'true' : 'false'); });
+      var first = form.querySelector('fieldset#' + pane + ' select, fieldset#' + pane + ' input:not([type=hidden])');
+      if (first) { first.focus(); }
+    }
+
+    toggles.forEach(function (toggle) {
+      toggle.addEventListener('click', function () {
+        var pane = toggle.getAttribute('data-gf-query-pane');
+        if (form.classList.contains('gf-open') && form.getAttribute('data-gf-pane') === pane) { close(); } else { open(pane, toggle); }
+      });
+    });
+    document.addEventListener('mousedown', function (e) {
+      if (!form.classList.contains('gf-open') || form.contains(e.target)) { return; }
+      if (e.target.closest('[data-gf-query-pane], .ui-datepicker, .ui-autocomplete')) { return; }
+      close();
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && form.classList.contains('gf-open')) {
+        var toggle = panel.querySelector('[data-gf-query-pane][aria-expanded="true"]');
+        close();
+        if (toggle) { toggle.focus(); }
+      }
+    });
   }
+
+  /* ---------- Status and priority icons ---------- */
+
+  var Icons = {
+    load: function () {
+      var template = document.getElementById('gf-icon-templates');
+      if (!template) { return false; }
+      try { this.categories = JSON.parse(template.getAttribute('data-status-categories')) || {}; } catch (e) { this.categories = {}; }
+      this.content = template.content;
+      return true;
+    },
+
+    svg: function (attr, value) {
+      var source = this.content.querySelector('[' + attr + '="' + value + '"] svg');
+      return source ? source.cloneNode(true) : null;
+    },
+
+    classValue: function (node, pattern) {
+      var match = (' ' + node.className + ' ').match(new RegExp(' ' + pattern + ' '));
+      return match ? match[1] : null;
+    },
+
+    priorityLevel: function (name) {
+      if (!name) { return null; }
+      if (name === 'highest' || name === 'high1') { return 'urgent'; }
+      if (name.indexOf('high') === 0) { return 'high'; }
+      if (name.indexOf('low') === 0) { return 'low'; }
+      return 'normal';
+    },
+
+    // Wraps the text of a cell in an icon + label pair.
+    decorate: function (cell, kind, value) {
+      if (!cell || !value || cell.querySelector('.gf-icon')) { return; }
+      var icon = this.svg('data-' + kind, value);
+      if (!icon) { return; }
+      var wrap = el('span', (kind === 'status' ? 'gf-status gf-status-' : 'gf-prio gf-prio-') + value);
+      wrap.appendChild(icon);
+      var label = el('span');
+      while (cell.firstChild) { label.appendChild(cell.firstChild); }
+      wrap.appendChild(label);
+      cell.appendChild(wrap);
+    },
+
+    apply: function (root) {
+      if (!this.content && !this.load()) { return; }
+      var self = this;
+      (root || document).querySelectorAll('tr.issue, div.issue').forEach(function (row) {
+        var statusId = self.classValue(row, 'status-([0-9]+)');
+        // Rows carry both "priority-<id>" and "priority-<rank name>"; only the rank name matters here.
+        var priority = self.priorityLevel(self.classValue(row, 'priority-([a-z]+[0-9]*)'));
+        var isRow = row.tagName === 'TR';
+        self.decorate(row.querySelector(isRow ? 'td.status' : '.attribute.status .value'), 'status', self.categories[statusId]);
+        self.decorate(row.querySelector(isRow ? 'td.priority' : '.attribute.priority .value'), 'priority', priority);
+      });
+    }
+  };
 
   function placeTransitions() {
     var bar = document.querySelector('.gf-transitions');
@@ -331,6 +431,7 @@
             if (fresh && current) { current.replaceWith(document.importNode(fresh, true)); }
           });
           placeTransitions();
+          Icons.apply();
           InlineEdit.init();
         });
     },
@@ -400,6 +501,7 @@
     Palette.init();
     placeIssuesPanel();
     placeTransitions();
+    Icons.apply();
     InlineEdit.init();
     initProjects();
   });

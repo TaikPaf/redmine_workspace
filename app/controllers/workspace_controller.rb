@@ -11,8 +11,8 @@ class WorkspaceController < ApplicationController
   def index
     @space = RedmineWorkspace::MySpace.new(User.current)
     @space.register_visit!
-    @tab = RedmineWorkspace::MySpace::TABS.include?(params[:tab]) ? params[:tab] : 'assigned'
-    @issues = @space.issues(@tab)
+    @tab = (RedmineWorkspace::MySpace::TABS + ['activity']).include?(params[:tab]) ? params[:tab] : 'assigned'
+    @issues = @tab == 'activity' ? [] : @space.issues(@tab)
   end
 
   def projects

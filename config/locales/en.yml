@@ -4,7 +4,6 @@ en:
   label_workspace_navigation: Main navigation
   label_workspace_hello: "Hello %{name}"
   label_workspace_good_evening: "Good evening %{name}"
-  text_workspace_summary: "%{overdue} overdue issues, %{week} due this week"
   label_workspace_bucket_overdue: Overdue
   label_workspace_bucket_week: This week
   label_workspace_bucket_later: Later
@@ -22,9 +21,7 @@ en:
   text_workspace_journal_comment: "%{user} commented on %{issue}"
   text_workspace_journal_change: "%{user} updated %{issue}: %{change}"
   label_workspace_ago: "%{time} ago"
-  label_workspace_recent_issues: Recently viewed
   label_workspace_favorite_projects: Favorite projects
-  text_workspace_no_favorites_html: "Add favorites with the star on the %{link} page."
   label_workspace_assigned_to_me: mine
   label_workspace_open: open
   label_workspace_overdue: overdue
@@ -98,3 +95,24 @@ en:
 
   label_workspace_setting_home_redirect: "“My space” as home page"
   text_workspace_setting_home_redirect: Logged-in users land on “My space” instead of Redmine's home page.
+  label_workspace_setting_status_categories: Status categories
+  text_workspace_setting_status_categories: Each category has its own icon and color, used in My space, issue lists, issue pages and the Kanban board.
+  label_workspace_status_category_backlog: Backlog
+  label_workspace_status_category_todo: To do
+  label_workspace_status_category_progress: In progress
+  label_workspace_status_category_review: In review
+  label_workspace_status_category_done: Done
+  label_workspace_status_category_cancelled: Cancelled
+
+  label_workspace_summary_overdue:
+    one: "1 overdue"
+    other: "%{count} overdue"
+  label_workspace_summary_week:
+    one: "1 due this week"
+    other: "%{count} due this week"
+  label_workspace_tab_activity: Activity
+  label_workspace_new_count: "%{count} new"
+  label_workspace_due_late: "-%{count}d"
+  label_workspace_due_today: today
+  label_workspace_filters: Filters
+  label_workspace_display: Display

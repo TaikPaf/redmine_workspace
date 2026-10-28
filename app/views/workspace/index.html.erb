@@ -1,13 +1,19 @@
 <% html_title(l(:label_workspace)) %>
 <% user = User.current %>
+<% activity = @space.activity %>
 
 <div class="gf-page gf-myspace">
   <header class="gf-page-header">
     <div>
       <h2><%= workspace_greeting(user) %></h2>
       <p class="gf-muted">
-        <%= format_date(user.today) %> ·
-        <%= l(:text_workspace_summary, overdue: @space.summary['overdue'], week: @space.summary['week']) %>
+        <%= format_date(user.today) %>
+        <% if @space.summary['overdue'] > 0 %>
+          · <%= link_to l(:label_workspace_summary_overdue, count: @space.summary['overdue']), workspace_search_path(q: 'moi retard'), class: 'gf-overdue' %>
+        <% end %>
+        <% if @space.summary['week'] > 0 %>
+          · <%= link_to l(:label_workspace_summary_week, count: @space.summary['week']), workspace_search_path(q: 'moi semaine'), class: 'gf-due-soon' %>
+        <% end %>
       </p>
     </div>
     <div class="gf-page-actions">
@@ -17,110 +23,68 @@
     </div>
   </header>
 
-  <div class="gf-stats">
-    <% RedmineWorkspace::MySpace::BUCKETS.each do |bucket| %>
-      <% text = {'overdue' => 'moi retard', 'week' => 'moi semaine', 'later' => 'moi', 'none' => 'moi'}[bucket] %>
-      <%= link_to workspace_search_path(q: text), class: "gf-stat gf-card gf-stat-#{bucket}" do %>
-        <span class="gf-stat-value"><%= @space.summary[bucket] %></span>
-        <span class="gf-stat-label"><%= workspace_bucket_label(bucket) %></span>
+  <nav class="gf-tabs" aria-label="<%= l(:label_workspace_my_issues) %>">
+    <% RedmineWorkspace::MySpace::TABS.each do |tab| %>
+      <%= link_to workspace_path(tab: tab), class: (tab == @tab ? 'selected' : nil), 'aria-current': (tab == @tab ? 'page' : nil) do %>
+        <%= l("label_workspace_tab_#{tab}") %> <span class="gf-tab-count"><%= @space.tab_counts[tab] %></span>
       <% end %>
     <% end %>
-  </div>
+    <%= link_to workspace_path(tab: 'activity'), class: ('selected' if @tab == 'activity'), 'aria-current': ('page' if @tab == 'activity') do %>
+      <%= l(:label_workspace_tab_activity) %>
+      <% if activity.any? %><span class="gf-tab-badge"><%= l(:label_workspace_new_count, count: activity.size) %></span><% end %>
+    <% end %>
+  </nav>
 
-  <div class="gf-columns">
-    <section class="gf-card gf-main-list" aria-labelledby="gf-my-issues">
-      <div class="gf-card-header">
-        <h3 id="gf-my-issues"><%= l(:label_workspace_my_issues) %></h3>
-        <nav class="gf-segmented" aria-label="<%= l(:label_workspace_my_issues) %>">
-          <% RedmineWorkspace::MySpace::TABS.each do |tab| %>
-            <%= link_to workspace_path(tab: tab), class: (tab == @tab ? 'selected' : nil), 'aria-current': (tab == @tab ? 'page' : nil) do %>
-              <%= l("label_workspace_tab_#{tab}") %> <span class="gf-count"><%= @space.tab_counts[tab] %></span>
-            <% end %>
-          <% end %>
-        </nav>
-      </div>
-
-      <% if @issues.empty? %>
-        <p class="gf-empty"><%= l("text_workspace_empty_#{@tab}") %></p>
+  <% if @tab == 'activity' %>
+    <section aria-label="<%= l(:label_workspace_tab_activity) %>">
+      <p class="gf-muted gf-small"><%= l(:label_workspace_since_last_visit) %> · <%= format_time(@space.since) %></p>
+      <% if activity.empty? %>
+        <p class="gf-empty"><%= l(:text_workspace_no_activity) %></p>
       <% else %>
-        <% groups = @tab == 'assigned' ? @space.grouped(@issues) : [[nil, @issues]] %>
-        <% groups.each do |bucket, issues| %>
-          <% if bucket %>
-            <h4 class="gf-group-title gf-bucket-<%= bucket %>"><%= workspace_bucket_label(bucket) %> · <%= issues.size %></h4>
+        <ul class="gf-activity">
+          <% activity.each do |journal| %>
+            <li>
+              <%= avatar(journal.user, size: 24) %>
+              <div>
+                <%= link_to workspace_journal_summary(journal), issue_path(journal.issue, anchor: "note-#{journal.indice}") %>
+                <div class="gf-muted gf-small"><%= l(:label_workspace_ago, time: distance_of_time_in_words(Time.now, journal.created_on)) %></div>
+              </div>
+            </li>
           <% end %>
-          <ul class="gf-issue-rows">
-            <% issues.each do |issue| %>
-              <li>
-                <%= link_to issue_path(issue), class: "gf-issue-row #{issue.css_classes}" do %>
-                  <span class="gf-issue-id">#<%= issue.id %></span>
-                  <span class="gf-issue-subject"><%= issue.subject %></span>
-                  <span class="gf-issue-project"><%= issue.project %></span>
-                  <%= workspace_status_tag(issue.status) %>
-                  <%= workspace_priority_tag(issue.priority) %>
-                  <%= workspace_due_tag(issue) %>
-                <% end %>
-              </li>
-            <% end %>
-          </ul>
-        <% end %>
-        <% if @space.tab_counts[@tab] > @issues.size %>
-          <p class="gf-more"><%= workspace_search_link({'assigned' => 'moi', 'created' => 'auteur:moi', 'watched' => 'suivi'}[@tab], l(:label_workspace_see_all, count: @space.tab_counts[@tab])) %></p>
-        <% end %>
+        </ul>
       <% end %>
     </section>
-
-    <aside class="gf-side">
-      <section class="gf-card" aria-labelledby="gf-news">
-        <h3 id="gf-news"><%= l(:label_workspace_since_last_visit) %></h3>
-        <p class="gf-muted gf-small"><%= format_time(@space.since) %></p>
-        <% activity = @space.activity %>
-        <% if activity.empty? %>
-          <p class="gf-empty"><%= l(:text_workspace_no_activity) %></p>
+  <% elsif @issues.empty? %>
+    <p class="gf-empty"><%= l("text_workspace_empty_#{@tab}") %></p>
+  <% else %>
+    <% groups = @tab == 'assigned' ? @space.grouped(@issues) : [[nil, @issues]] %>
+    <% groups.each do |bucket, issues| %>
+      <details class="gf-issue-group" <%= 'open' unless bucket == 'none' && groups.size > 1 %>>
+        <% if bucket %>
+          <summary class="gf-group-title gf-bucket-<%= bucket %>">
+            <%= workspace_bucket_label(bucket) %> <span class="gf-group-count"><%= issues.size %></span>
+          </summary>
         <% else %>
-          <ul class="gf-activity">
-            <% activity.each do |journal| %>
-              <li>
-                <%= avatar(journal.user, size: 28) %>
-                <div>
-                  <%= link_to workspace_journal_summary(journal), issue_path(journal.issue, anchor: "note-#{journal.indice}") %>
-                  <div class="gf-muted gf-small"><%= l(:label_workspace_ago, time: distance_of_time_in_words(Time.now, journal.created_on)) %></div>
-                </div>
-              </li>
-            <% end %>
-          </ul>
+          <summary class="gf-visually-hidden"><%= l("label_workspace_tab_#{@tab}") %></summary>
         <% end %>
-      </section>
-
-      <% recent = @space.recent_issues %>
-      <% if recent.any? %>
-        <section class="gf-card" aria-labelledby="gf-recent">
-          <h3 id="gf-recent"><%= l(:label_workspace_recent_issues) %></h3>
-          <ul class="gf-plain-list">
-            <% recent.each do |issue| %>
-              <li><%= link_to issue_path(issue) do %><span class="gf-muted">#<%= issue.id %></span> <%= issue.subject %><% end %></li>
-            <% end %>
-          </ul>
-        </section>
-      <% end %>
-
-      <section class="gf-card" aria-labelledby="gf-favorites">
-        <h3 id="gf-favorites"><%= l(:label_workspace_favorite_projects) %></h3>
-        <% if @space.favorite_projects.empty? %>
-          <p class="gf-empty"><%= l(:text_workspace_no_favorites_html, link: link_to(l(:label_workspace_projects), workspace_projects_path)).html_safe %></p>
-        <% else %>
-          <ul class="gf-plain-list">
-            <% @space.favorite_projects.each do |project| %>
-              <li>
-                <%= link_to project_path(project), class: 'gf-favorite' do %>
-                  <%= workspace_project_badge(project, size: 22) %>
-                  <span><%= project.name %></span>
-                  <span class="gf-count" title="<%= l(:label_workspace_assigned_to_me) %>"><%= @space.favorite_counts[project.id].to_i %></span>
-                <% end %>
-              </li>
-            <% end %>
-          </ul>
-        <% end %>
-      </section>
-    </aside>
-  </div>
+        <ul class="gf-issue-rows">
+          <% issues.each do |issue| %>
+            <li>
+              <%= link_to issue_path(issue), class: "gf-issue-row #{issue.css_classes}" do %>
+                <%= workspace_priority_tag(issue.priority, label: false) %>
+                <span class="gf-issue-id">#<%= issue.id %></span>
+                <span class="gf-issue-subject"><%= issue.subject %></span>
+                <span class="gf-issue-project"><%= workspace_project_dot(issue.project) %><%= issue.project %></span>
+                <%= workspace_status_tag(issue.status) %>
+                <%= workspace_due_tag(issue) %>
+              <% end %>
+            </li>
+          <% end %>
+        </ul>
+      </details>
+    <% end %>
+    <% if @space.tab_counts[@tab] > @issues.size %>
+      <p class="gf-more"><%= workspace_search_link({'assigned' => 'moi', 'created' => 'auteur:moi', 'watched' => 'suivi'}[@tab], l(:label_workspace_see_all, count: @space.tab_counts[@tab])) %></p>
+    <% end %>
+  <% end %>
 </div>

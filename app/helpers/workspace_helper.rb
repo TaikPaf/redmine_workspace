@@ -1,26 +1,34 @@
 # frozen_string_literal: true
 
 module WorkspaceHelper
-  STATUS_TONES = %w(blue amber green purple teal pink).freeze
-
   def workspace_status_tag(status)
-    tone = status.is_closed? ? 'gray' : STATUS_TONES[status.position.to_i % STATUS_TONES.size]
-    content_tag(:span, status.name, class: "gf-pill gf-tone-#{tone}")
+    RedmineWorkspace::Icons.status(status)
   end
 
-  def workspace_priority_tag(priority)
-    return '' unless priority
+  def workspace_priority_tag(priority, label: true)
+    RedmineWorkspace::Icons.priority(priority, label: label)
+  end
 
-    content_tag(:span, class: "gf-priority #{priority.css_classes}") do
-      content_tag(:span, '', class: 'gf-dot', 'aria-hidden': 'true') + priority.name
+  # Short relative due date: "-3 j" when late, the weekday within the week, a short date beyond.
+  def workspace_due_tag(issue, today = User.current.today)
+    due = issue.due_date
+    return content_tag(:span, '', class: 'gf-due') unless due
+
+    title = "#{l(:field_due_date)} : #{format_date(due)}"
+    if due < today && !issue.closed?
+      content_tag(:span, l(:label_workspace_due_late, count: (today - due).to_i), class: 'gf-due gf-overdue', title: title)
+    elsif due == today
+      content_tag(:span, l(:label_workspace_due_today), class: 'gf-due gf-due-soon', title: title)
+    elsif due <= today.end_of_week
+      content_tag(:span, ::I18n.t('date.abbr_day_names')[due.wday], class: 'gf-due gf-due-soon', title: title)
+    else
+      content_tag(:span, ::I18n.l(due, format: :short), class: 'gf-due', title: title)
     end
   end
 
-  def workspace_due_tag(issue, today = User.current.today)
-    return content_tag(:span, '—', class: 'gf-due gf-muted') unless issue.due_date
-
-    css = issue.due_date < today && !issue.closed? ? 'gf-due gf-overdue' : 'gf-due'
-    content_tag(:span, format_date(issue.due_date), class: css, title: l(:field_due_date))
+  def workspace_project_dot(project)
+    content_tag(:span, '', class: 'gf-appnav-dot', 'aria-hidden': 'true',
+                style: "background: #{RedmineWorkspace::ProjectsOverview.color_for(project)}")
   end
 
   def workspace_bucket_label(bucket)

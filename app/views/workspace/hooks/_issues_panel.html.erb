@@ -18,7 +18,14 @@
       <%= sprite_icon('search', icon_only: true) %>
       <%= text_field_tag 'q', text, id: 'gf-smart-q', placeholder: l(:label_workspace_search_placeholder), autocomplete: 'off' %>
     </label>
-    <%= submit_tag l(:button_apply), name: nil, class: 'gf-button gf-button-primary' %>
+    <button type="button" class="gf-button gf-query-toggle" data-gf-query-pane="filters" aria-expanded="false" aria-controls="query_form">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18l-7 8.5V19l-4 2v-7.5z"/></svg>
+      <%= l(:label_workspace_filters) %> <span class="gf-tab-badge" data-gf-filter-count hidden></span>
+    </button>
+    <button type="button" class="gf-button gf-query-toggle" data-gf-query-pane="options" aria-expanded="false" aria-controls="query_form">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>
+      <%= l(:label_workspace_display) %>
+    </button>
   <% end %>
   <div class="gf-understood">
     <span class="gf-muted gf-small"><%= l(:label_workspace_understood) %></span>

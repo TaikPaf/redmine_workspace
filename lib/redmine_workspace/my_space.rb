@@ -103,18 +103,6 @@ module RedmineWorkspace
         limit(limit).to_a
     end
 
-    def recent_issues
-      RecentIssues.issues(user, limit: 6)
-    end
-
-    def favorite_projects
-      @favorite_projects ||= Project.visible(user).where(id: user.bookmarked_project_ids).sorted.to_a
-    end
-
-    def favorite_counts
-      @favorite_counts ||= assigned_scope.where(project_id: favorite_projects.map(&:id)).group(:project_id).count
-    end
-
     private
 
     def base
