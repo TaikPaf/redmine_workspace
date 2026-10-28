@@ -164,6 +164,23 @@
         var toggle = document.querySelector('.gf-theme-toggle');
         if (toggle) { toggle.click(); }
         this.close();
+      } else if (item.data.js === 'issue-update') {
+        var self = this;
+        item.node.setAttribute('aria-busy', 'true');
+        window.fetch(item.data.endpoint, {
+          method: 'PATCH',
+          credentials: 'same-origin',
+          headers: {'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-Token': csrfToken()},
+          body: JSON.stringify({attribute: item.data.attribute, value: item.data.value})
+        }).then(function (r) {
+          return r.json().catch(function () { return {}; }).then(function (data) {
+            if (!r.ok) { throw (data && data.error) || self.i18n.error; }
+            window.location.reload();
+          });
+        }).catch(function (message) {
+          item.node.removeAttribute('aria-busy');
+          self.results.insertBefore(el('p', 'gf-inline-error', message || ''), self.results.firstChild);
+        });
       } else if (item.data.url) {
         window.location.href = item.data.url;
       }
@@ -480,11 +497,56 @@
     }
   };
 
+  // Sends a note form (issue page or preview) with fetch; onDone runs after a successful save.
+  function bindNoteForm(form, i18n, onDone) {
+    if (!form) { return; }
+    var textarea = form.querySelector('textarea');
+    textarea.addEventListener('keydown', function (e) {
+      // Redmine's own Ctrl+Enter handler would submit the form natively, bypassing the listener below.
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); e.stopPropagation(); form.requestSubmit(); }
+    });
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (!textarea.value.trim()) { textarea.focus(); return; }
+      var button = form.querySelector('button[type=submit]');
+      button.disabled = true;
+      window.fetch(form.action, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {Accept: 'application/json', 'X-CSRF-Token': csrfToken()},
+        body: new URLSearchParams(new FormData(form))
+      }).then(function (r) {
+        return r.json().catch(function () { return {}; }).then(function (data) {
+          if (!r.ok) { throw (data && data.error) || i18n.error; }
+          return onDone();
+        });
+      }).catch(function (message) {
+        button.disabled = false;
+        var note = el('p', 'gf-inline-error', message || i18n.error);
+        note.setAttribute('role', 'alert');
+        form.appendChild(note);
+      });
+    });
+  }
+
+  // The note composer is rendered inside the issue block; it belongs under the history.
+  function placeComposer(i18n) {
+    var fresh = document.querySelector('form.gf-note-composer:not(.gf-placed)');
+    if (!fresh) { return; }
+    var anchor = document.getElementById('history') || document.querySelector('#content div.issue');
+    document.querySelectorAll('form.gf-note-composer.gf-placed').forEach(function (old) { old.remove(); });
+    anchor.parentNode.insertBefore(fresh, anchor.nextSibling);
+    fresh.hidden = false;
+    fresh.classList.add('gf-placed');
+    bindNoteForm(fresh, i18n, IssuePage.refresh);
+  }
+
   var IssuePage = {
     init: function (i18n) {
       this.i18n = i18n || this.i18n || {};
       placeIssueColumns(this.i18n);
       placeTransitions();
+      placeComposer(this.i18n);
       Icons.apply();
       var config = document.getElementById('gf-inline');
       if (!config) { return; }
@@ -503,7 +565,13 @@
           ['div.issue', '#history', '#content > .contextual'].forEach(function (selector) {
             var fresh = doc.querySelector(selector);
             var current = document.querySelector(selector);
-            if (fresh && current) { current.replaceWith(document.importNode(fresh, true)); }
+            if (fresh && current) {
+              current.replaceWith(document.importNode(fresh, true));
+            } else if (fresh && selector === '#history') {
+              // First note on an issue without history: the history block did not exist yet.
+              var composer = document.querySelector('form.gf-note-composer.gf-placed');
+              if (composer) { composer.parentNode.insertBefore(document.importNode(fresh, true), composer); }
+            }
           });
           IssuePage.init();
         });
@@ -625,7 +693,10 @@
             self.changed = true;
             return self.load(false);
           }).load();
-          self.bindNoteForm(body);
+          bindNoteForm(body.querySelector('form.gf-peek-note-form'), self.i18n, function () {
+            self.changed = true;
+            return self.load(false);
+          });
           if (focus) {
             var title = self.content.querySelector('#gf-peek-title');
             title.setAttribute('tabindex', '-1');
@@ -635,40 +706,6 @@
         .catch(function () {
           if (self.panel) { self.content.innerHTML = ''; self.content.appendChild(el('p', 'gf-inline-error', self.i18n.error || '')); }
         });
-    },
-
-    bindNoteForm: function (body) {
-      var self = this;
-      var form = body.querySelector('.gf-peek-note-form');
-      if (!form) { return; }
-      var textarea = form.querySelector('textarea');
-      textarea.addEventListener('keydown', function (e) {
-        // Redmine's own Ctrl+Enter handler would submit the form natively, bypassing the listener below.
-        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); e.stopPropagation(); form.requestSubmit(); }
-      });
-      form.addEventListener('submit', function (e) {
-        e.preventDefault();
-        if (!textarea.value.trim()) { textarea.focus(); return; }
-        var button = form.querySelector('button[type=submit]');
-        button.disabled = true;
-        window.fetch(body.getAttribute('data-notes-url'), {
-          method: 'POST',
-          credentials: 'same-origin',
-          headers: {Accept: 'application/json', 'X-CSRF-Token': csrfToken()},
-          body: new URLSearchParams(new FormData(form))
-        }).then(function (r) {
-          return r.json().catch(function () { return {}; }).then(function (data) {
-            if (!r.ok) { throw (data && data.error) || self.i18n.error; }
-            self.changed = true;
-            return self.load(false);
-          });
-        }).catch(function (message) {
-          button.disabled = false;
-          var note = el('p', 'gf-inline-error', message || self.i18n.error);
-          note.setAttribute('role', 'alert');
-          form.appendChild(note);
-        });
-      });
     },
 
     step: function (delta) {

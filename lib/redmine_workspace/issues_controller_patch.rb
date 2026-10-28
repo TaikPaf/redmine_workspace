@@ -9,7 +9,10 @@ module RedmineWorkspace
     private
 
     def workspace_track_recent_issue
-      RecentIssues.track(User.current, @issue) if response.successful? && request.format.html?
+      return unless response.successful? && request.format.html?
+
+      RecentIssues.track(User.current, @issue)
+      MySpace.new(User.current).mark_read!(@issue)
     end
   end
 end

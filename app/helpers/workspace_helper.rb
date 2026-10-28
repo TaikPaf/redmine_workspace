@@ -54,14 +54,15 @@ module WorkspaceHelper
     l(key, name: user.firstname.presence || user.name)
   end
 
-  def workspace_journal_summary(journal)
-    issue_label = "##{journal.issue.id} #{journal.issue.subject}"
-    if journal.notes.present?
-      l(:text_workspace_journal_comment, user: journal.user, issue: issue_label)
-    else
-      detail = journal.visible_details.first
-      change = detail ? show_detail(detail, true) : l(:label_updated_time, '')
-      l(:text_workspace_journal_change, user: journal.user, issue: issue_label, change: change)
-    end
+  # What a journal changed, without the issue name: "Alice : Statut changé de Nouveau à En cours".
+  def workspace_journal_line(journal)
+    text =
+      if journal.notes.present?
+        journal.private_notes? ? l(:field_private_notes) : journal.notes.gsub(/\s+/, ' ').truncate(110)
+      else
+        detail = journal.visible_details.first
+        detail ? show_detail(detail, true) : l(:label_updated_time, '')
+      end
+    l(:text_workspace_journal_line, user: journal.user, text: text)
   end
 end

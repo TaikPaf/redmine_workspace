@@ -6,10 +6,22 @@ module RedmineWorkspace
     TABS = %w(assigned created watched).freeze
     BUCKETS = %w(overdue week later none).freeze
     LIST_LIMIT = 50
-    VISIT_PREF = :workspace_visit_at
-    PREVIOUS_VISIT_PREF = :workspace_previous_visit_at
-    # A new "visit" starts after this much inactivity on the page.
-    VISIT_GAP = 30.minutes
+    READ_PREF = :workspace_read_at
+    READ_ALL_PREF = :workspace_read_all_at
+    INBOX_WINDOW = 30.days
+    INBOX_LIMIT = 40
+    READ_KEEP = 300
+
+    # One issue in the activity inbox, with the changes made by others.
+    InboxEntry = Struct.new(:issue, :journals, :unread, keyword_init: true) do
+      def latest
+        journals.first
+      end
+
+      def unread?
+        unread > 0
+      end
+    end
 
     attr_reader :user
 
@@ -75,35 +87,58 @@ module RedmineWorkspace
       end
     end
 
-    # Records this visit and returns when the previous one started.
-    def register_visit!(now = Time.current)
-      last = parse_time(user.pref[VISIT_PREF])
-      if last.nil? || now - last > VISIT_GAP
-        user.pref[PREVIOUS_VISIT_PREF] = last&.iso8601
-        user.pref[VISIT_PREF] = now.iso8601
-        user.pref.save
+    # Changes made by others on my issues over the last 30 days, grouped by issue, latest first.
+    def inbox
+      @inbox ||= begin
+        issue_ids = assigned_scope.pluck(:id) | created_scope.pluck(:id) | watched_scope.pluck(:id)
+        journals = issue_ids.empty? ? [] : others_journals(issue_ids, INBOX_WINDOW.ago).
+          includes(:user, :details, issue: [:project, :tracker, :status]).
+          reorder("#{Journal.table_name}.created_on DESC").limit(400).to_a
+        journals.group_by(&:journalized_id).first(INBOX_LIMIT).map do |issue_id, list|
+          cutoff = read_cutoff(issue_id)
+          InboxEntry.new(issue: list.first.issue, journals: list, unread: list.count {|j| j.created_on > cutoff})
+        end
       end
-      @since = parse_time(user.pref[PREVIOUS_VISIT_PREF]) || 7.days.ago
     end
 
-    def since
-      @since ||= parse_time(user.pref[PREVIOUS_VISIT_PREF]) || 7.days.ago
+    def unread_count
+      inbox.count(&:unread?)
     end
 
-    def activity(limit: 12)
-      issue_ids = assigned_scope.pluck(:id) | created_scope.pluck(:id) | watched_scope.pluck(:id)
-      return [] if issue_ids.empty?
+    def mark_read!(issue, now = Time.current)
+      return unless issue&.id
+      return unless others_journals([issue.id], read_cutoff(issue.id)).exists?
 
-      Journal.visible(user).
-        where(journalized_type: 'Issue', journalized_id: issue_ids).
-        where("#{Journal.table_name}.created_on > ?", since).
-        where.not(user_id: user.id).
-        includes(:user, :details, issue: [:project, :tracker]).
-        reorder("#{Journal.table_name}.created_on DESC").
-        limit(limit).to_a
+      read = read_map.merge(issue.id.to_s => now.iso8601)
+      user.pref[READ_PREF] = read.sort_by {|_, time| time}.last(READ_KEEP).to_h
+      user.pref.save
+      @inbox = nil
+    end
+
+    def mark_all_read!(now = Time.current)
+      user.pref[READ_ALL_PREF] = now.iso8601
+      user.pref[READ_PREF] = {}
+      user.pref.save
+      @inbox = nil
+    end
+
+    def read_cutoff(issue_id)
+      [INBOX_WINDOW.ago, parse_time(user.pref[READ_ALL_PREF]), parse_time(read_map[issue_id.to_s])].compact.max
     end
 
     private
+
+    def read_map
+      value = user.pref[READ_PREF]
+      value.is_a?(Hash) ? value.transform_keys(&:to_s) : {}
+    end
+
+    def others_journals(issue_ids, after)
+      Journal.visible(user).
+        where(journalized_type: 'Issue', journalized_id: issue_ids).
+        where("#{Journal.table_name}.created_on > ?", after).
+        where.not(user_id: user.id)
+    end
 
     def base
       Issue.visible(user).open

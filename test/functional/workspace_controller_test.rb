@@ -31,6 +31,37 @@ class WorkspaceControllerTest < Redmine::ControllerTest
     end
   end
 
+  def test_activity_tab_lists_unread_issues
+    issue = Issue.find(1)
+    issue.update_columns(assigned_to_id: 2, status_id: 1)
+    issue.init_journal(User.find(3), 'Une nouvelle note').save!
+    get :index, params: {tab: 'activity'}
+    assert_response :success
+    assert_select ".gf-inbox-item.unread a[href^='/issues/1']"
+    assert_select '.gf-tabs .gf-tab-badge'
+    assert_select "form[action='/workspace/activity/read']"
+  end
+
+  def test_mark_all_read
+    issue = Issue.find(1)
+    issue.update_columns(assigned_to_id: 2, status_id: 1)
+    issue.init_journal(User.find(3), 'Note').save!
+    travel 1.second do
+      post :mark_all_read
+    end
+    assert_redirected_to '/workspace?tab=activity'
+    assert_equal 0, RedmineWorkspace::MySpace.new(User.find(2)).unread_count
+  end
+
+  def test_palette_offers_actions_on_the_current_issue
+    get :palette, params: {q: '', issue_id: 1}
+    assert_response :success
+    section = response.parsed_body['sections'].first
+    assert_equal I18n.t(:label_workspace_palette_this_issue), section['title']
+    assert section['items'].all? {|item| item['js'] == 'issue-update' && item['endpoint'] == '/workspace/issues/1/inline'}
+    assert section['items'].any? {|item| item['attribute'] == 'status_id'}
+  end
+
   def test_layout_carries_status_icon_templates
     get :index
     assert_select 'template#gf-icon-templates[data-status-categories]'
@@ -114,6 +145,19 @@ class WorkspaceHooksTest < Redmine::ControllerTest
     assert_select '#gf-tabbar .gf-tab', minimum: 4
     assert_select '#gf-appnav [data-gf-nav-toggle]'
     assert_includes response.body, 'gfSetNavMode'
+  end
+
+  def test_issue_show_has_note_composer_and_marks_issue_read
+    issue = Issue.find(1)
+    issue.update_columns(assigned_to_id: 2, status_id: 1)
+    issue.init_journal(User.find(3), 'À lire').save!
+    travel 1.second do
+      get :show, params: {id: 1}
+    end
+    assert_response :success
+    assert_select "form.gf-note-composer[action='/workspace/issues/1/notes'] textarea[name=notes]"
+    entry = RedmineWorkspace::MySpace.new(User.find(2)).inbox.detect {|e| e.issue.id == 1}
+    assert_not entry.unread?
   end
 
   def test_issue_show_has_status_buttons_and_tracks_recent

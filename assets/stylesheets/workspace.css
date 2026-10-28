@@ -499,11 +499,47 @@ html[data-gf-theme="dark"] .gf-status-progress { color: #f0b45e; }
   .gf-issue-item .gf-peek-btn { align-self: flex-start; margin-block-start: 6px; }
 }
 
-.gf-activity { list-style: none; margin: 0; padding: 0; }
-.gf-activity li { display: flex; gap: 10px; padding-block: 10px; border-block-start: 1px solid var(--ws-line); }
-.gf-activity li:first-child { border-block-start: 0; }
-.gf-activity a { color: var(--ws-text); }
-.gf-activity .avatar { flex: none; inline-size: 24px; block-size: 24px; min-inline-size: 24px; }
+/* Activity inbox: one line per issue, a dot while it has unread changes. */
+.gf-inbox-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-block-end: 8px; }
+.gf-inbox-head p { margin: 0; }
+.gf-inline-form { display: inline; margin: 0; }
+.gf-inbox { list-style: none; margin: 0; padding: 0; }
+.gf-inbox-item { display: flex; align-items: center; gap: 4px; border-block-start: 1px solid var(--ws-line); }
+.gf-inbox-item:first-child { border-block-start: 0; }
+.gf-inbox-link {
+  flex: 1;
+  min-inline-size: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 8px;
+  border-radius: var(--ws-radius-sm);
+  color: var(--ws-text) !important;
+  text-decoration: none !important;
+}
+.gf-inbox-link:hover { background: var(--ws-hover); }
+.gf-unread-dot { flex: none; inline-size: 8px; block-size: 8px; border-radius: 999px; background: transparent; }
+.gf-inbox-item.unread .gf-unread-dot { background: var(--ws-accent-solid); }
+.gf-inbox-link .avatar { flex: none; inline-size: 24px; block-size: 24px; }
+.gf-inbox-text { flex: 1; min-inline-size: 0; display: flex; flex-direction: column; gap: 2px; }
+.gf-inbox-title { display: flex; align-items: center; gap: 8px; min-inline-size: 0; }
+.gf-inbox-title .gf-issue-id { inline-size: auto; }
+.gf-inbox-subject { min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gf-inbox-item.unread .gf-inbox-subject { font-weight: 600; }
+.gf-inbox-title .gf-issue-project { inline-size: auto; flex: none; }
+.gf-inbox-change { font-size: 0.8125rem; color: var(--ws-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gf-inbox-meta { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; font-size: 0.75rem; color: var(--ws-faint); white-space: nowrap; }
+.gf-inbox-item:hover .gf-peek-btn, .gf-inbox-item:focus-within .gf-peek-btn { opacity: 1; }
+@media screen and (max-width: 899px) {
+  .gf-inbox-title .gf-issue-project { display: none; }
+  .gf-inbox-meta span + span { display: none; }
+}
+
+/* Note composer under the history of an issue. */
+.gf-note-composer { display: flex; align-items: flex-start; gap: 12px; max-inline-size: 760px; margin-block: 16px 8px; }
+.gf-note-composer[hidden] { display: none; }
+.gf-note-composer .avatar { flex: none; inline-size: 28px; block-size: 28px; margin-block-start: 4px; }
+.gf-note-composer .gf-peek-note-form { flex: 1; min-inline-size: 0; }
 
 /* ---------- Projects ---------- */
 

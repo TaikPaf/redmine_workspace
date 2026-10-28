@@ -14,6 +14,7 @@ class WorkspaceIssuesController < ApplicationController
   def peek
     @notes = @issue.visible_journals_with_index.select {|journal| journal.notes.present?}.last(PEEK_NOTES)
     RedmineWorkspace::RecentIssues.track(User.current, @issue)
+    RedmineWorkspace::MySpace.new(User.current).mark_read!(@issue)
     render partial: 'workspace_issues/peek', locals: {issue: @issue, notes: @notes}
   end
 

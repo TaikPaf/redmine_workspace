@@ -16,10 +16,8 @@ en:
   text_workspace_empty_created: You have no open issue that you created.
   text_workspace_empty_watched: You are not watching any open issue.
   label_workspace_see_all: "See all %{count} issues"
-  label_workspace_since_last_visit: Since your last visit
   text_workspace_no_activity: Nothing new on your issues.
-  text_workspace_journal_comment: "%{user} commented on %{issue}"
-  text_workspace_journal_change: "%{user} updated %{issue}: %{change}"
+  text_workspace_journal_line: "%{user}: %{text}"
   label_workspace_ago: "%{time} ago"
   label_workspace_favorite_projects: Favorite projects
   label_workspace_assigned_to_me: mine
@@ -143,3 +141,15 @@ en:
   label_workspace_current_version: Current version
   label_workspace_activity: Activity
   label_workspace_none: None
+  label_workspace_inbox_unread:
+    one: "1 issue with news"
+    other: "%{count} issues with news"
+  label_workspace_inbox_all_read: All caught up. Changes from the last 30 days stay listed.
+  label_workspace_mark_all_read: Mark all as read
+  label_workspace_unread: Unread
+  label_workspace_changes_count:
+    one: "1 change"
+    other: "%{count} changes"
+  label_workspace_palette_this_issue: This issue
+  label_workspace_palette_move_to: "Move to: %{status}"
+  label_workspace_palette_assign_me: Assign to me

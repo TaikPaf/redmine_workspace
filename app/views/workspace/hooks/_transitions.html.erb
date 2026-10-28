@@ -1,4 +1,5 @@
-<% if User.current.logged? && issue.persisted? && issue.attributes_editable? %>
+<% if User.current.logged? && issue.persisted? %>
+<% if issue.attributes_editable? %>
 <div id="gf-inline" hidden
      data-url="<%= workspace_issue_inline_path(issue) %>"
      data-i18n="<%= {
@@ -20,5 +21,23 @@
     <% end %>
   <% end %>
 </div>
+<% end %>
+<% end %>
+<% if issue.notes_addable? %>
+  <%# Rendered inside the attributes block by the hook; workspace.js moves it under the history. %>
+  <%= form_tag(workspace_issue_notes_path(issue), method: :post, class: 'gf-note-composer', hidden: true) do %>
+    <%= avatar(User.current, size: 28) %>
+    <div class="gf-peek-note-form">
+      <label class="gf-visually-hidden" for="gf-composer-note"><%= l(:label_workspace_add_note) %></label>
+      <textarea id="gf-composer-note" name="notes" rows="3" placeholder="<%= l(:label_workspace_add_note) %>…"></textarea>
+      <div class="gf-peek-note-actions">
+        <% if User.current.allowed_to?(:set_notes_private, issue.project) %>
+          <label class="gf-small gf-muted"><input type="checkbox" name="private_notes" value="1"> <%= l(:field_private_notes) %></label>
+        <% end %>
+        <span class="gf-small gf-muted"><%= l(:label_workspace_ctrl_enter) %></span>
+        <button type="submit" class="gf-button gf-button-primary"><%= l(:button_submit) %></button>
+      </div>
+    </div>
+  <% end %>
 <% end %>
 <% end %>

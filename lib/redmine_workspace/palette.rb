@@ -6,12 +6,13 @@ module RedmineWorkspace
     ISSUE_LIMIT = 6
     PROJECT_LIMIT = 5
 
-    attr_reader :user, :project, :view
+    attr_reader :user, :project, :view, :issue
 
-    def initialize(user, project:, view:)
+    def initialize(user, project:, view:, issue: nil)
       @user = user
       @project = project
       @view = view
+      @issue = issue
     end
 
     def results(text)
@@ -19,13 +20,19 @@ module RedmineWorkspace
       sections =
         if text.empty?
           [
+            section(:label_workspace_palette_this_issue, issue_actions),
             section(:label_workspace_palette_recent, recent_items),
             section(:label_workspace_palette_actions, actions)
           ]
         elsif text.start_with?('>')
-          [section(:label_workspace_palette_actions, filter_actions(text[1..].to_s.strip))]
+          needle = text[1..].to_s.strip
+          [
+            section(:label_workspace_palette_this_issue, filter_items(issue_actions, needle)),
+            section(:label_workspace_palette_actions, filter_actions(needle))
+          ]
         else
           [
+            section(:label_workspace_palette_this_issue, filter_items(issue_actions, text)),
             section(:label_issue_plural, issue_items(text)),
             section(:label_project_plural, project_items(text)),
             section(:label_workspace_palette_actions, filter_actions(text)),
@@ -92,8 +99,38 @@ module RedmineWorkspace
     end
 
     def filter_actions(text)
+      filter_items(actions, text)
+    end
+
+    def filter_items(items, text)
       needle = normalize(text)
-      actions.select {|a| needle.empty? || normalize(a[:label]).include?(needle)}
+      items.select {|a| needle.empty? || normalize(a[:label]).include?(needle)}
+    end
+
+    # Status changes and "assign to me" for the issue being viewed, within what the workflow allows.
+    def issue_actions
+      @issue_actions ||= begin
+        fields = issue ? InlineFields.new(issue, user).fields : {}
+        url = issue && view.workspace_issue_inline_path(issue)
+        list = []
+        if (status = fields['status'])
+          status[:options].each do |name, id|
+            next if id == issue.status_id.to_s
+
+            list << issue_action('→', ::I18n.t(:label_workspace_palette_move_to, status: name), url, 'status_id', id)
+          end
+        end
+        assignee = fields['assigned-to']
+        if assignee && issue.assigned_to_id != user.id && assignee[:options].any? {|_, id| id == user.id.to_s}
+          list << issue_action('@', ::I18n.t(:label_workspace_palette_assign_me), url, 'assigned_to_id', user.id.to_s)
+        end
+        list
+      end
+    end
+
+    def issue_action(badge, label, url, attribute, value)
+      {kind: 'issue-action', badge: badge, label: label, hint: "##{issue.id}", endpoint: url,
+       js: 'issue-update', attribute: attribute, value: value}
     end
 
     def actions

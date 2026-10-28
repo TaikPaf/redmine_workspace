@@ -33,24 +33,50 @@ class RedmineWorkspace::MySpaceTest < ActiveSupport::TestCase
     assert_includes @space.issues('watched'), Issue.find(1)
   end
 
-  def test_register_visit_keeps_previous_visit
-    first = Time.zone.parse('2026-01-01 10:00')
-    @space.register_visit!(first)
-    later = first + 2.hours
-    since = RedmineWorkspace::MySpace.new(@user.reload).register_visit!(later)
-    assert_equal first.to_i, since.to_i
+  def add_note_by_other(issue, text)
+    issue.update_columns(assigned_to_id: @user.id, status_id: 1)
+    journal = issue.init_journal(User.find(3), text)
+    journal.save!
+    journal
   end
 
-  def test_activity_lists_changes_by_others_since_last_visit
+  def test_inbox_groups_changes_by_others_per_issue
     issue = Issue.find(1)
-    issue.update_columns(assigned_to_id: @user.id, status_id: 1)
-    @user.pref[RedmineWorkspace::MySpace::PREVIOUS_VISIT_PREF] = 1.hour.ago.iso8601
-    @user.pref.save
-    journal = issue.init_journal(User.find(3), 'Fresh note')
-    journal.save!
+    first = add_note_by_other(issue, 'First note')
+    second = add_note_by_other(issue, 'Second note')
 
-    activity = RedmineWorkspace::MySpace.new(@user.reload).activity
-    assert_includes activity, journal
-    assert activity.none? {|j| j.user_id == @user.id}
+    entry = RedmineWorkspace::MySpace.new(@user.reload).inbox.detect {|e| e.issue.id == issue.id}
+    assert entry
+    assert_equal second, entry.latest
+    assert_includes entry.journals, first
+    assert entry.journals.none? {|j| j.user_id == @user.id}
+    assert entry.unread?
+  end
+
+  def test_mark_read_clears_one_issue
+    issue = Issue.find(1)
+    add_note_by_other(issue, 'Note')
+    space = RedmineWorkspace::MySpace.new(@user.reload)
+    unread = space.unread_count
+    space.mark_read!(issue, 1.second.from_now)
+
+    space = RedmineWorkspace::MySpace.new(@user.reload)
+    assert_not space.inbox.detect {|e| e.issue.id == issue.id}.unread?
+    assert_equal unread - 1, space.unread_count
+  end
+
+  def test_mark_all_read
+    add_note_by_other(Issue.find(1), 'Note')
+    RedmineWorkspace::MySpace.new(@user).mark_all_read!(1.second.from_now)
+    assert_equal 0, RedmineWorkspace::MySpace.new(@user.reload).unread_count
+  end
+
+  def test_new_change_after_reading_is_unread_again
+    issue = Issue.find(1)
+    add_note_by_other(issue, 'Old')
+    RedmineWorkspace::MySpace.new(@user).mark_read!(issue, 1.minute.ago)
+    add_note_by_other(issue, 'New')
+    entry = RedmineWorkspace::MySpace.new(@user.reload).inbox.detect {|e| e.issue.id == issue.id}
+    assert_equal 1, entry.unread
   end
 end

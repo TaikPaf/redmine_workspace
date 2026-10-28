@@ -9,7 +9,7 @@ Il est conçu pour aller avec le thème [Glassfluid](https://github.com/TaikPaf/
 - **Mon espace** (`/workspace`) :
   - vos demandes ouvertes classées par urgence (en retard, cette semaine, plus tard, sans échéance), avec des échéances relatives (« -3 j », « ven. ») ;
   - les onglets *Assignées à moi*, *J'ai créé* et *Je surveille* ;
-  - l'onglet *Activité* : ce qui a changé sur vos demandes depuis votre dernière visite.
+  - l'onglet *Activité*, une boîte de réception : les changements faits par d'autres sur vos demandes (assignées, créées, surveillées) des 30 derniers jours, regroupés par demande. Un point bleu marque les demandes avec du nouveau. Ouvrir la demande, ou son aperçu, la marque comme lue, et un bouton marque tout comme lu.
 
   Option : en faire la page d'accueil des utilisateurs connectés.
 - **Projets** (`/workspace/projects`) : une liste, avec les sous-projets sous leur parent. Pour chaque projet, on voit les demandes ouvertes, celles assignées à vous et celles en retard, puis la version en cours avec son avancement et la dernière activité. Une vue en grille (cartes) est aussi disponible, et le choix est mémorisé. L'étoile ajoute un projet aux favoris de Redmine. On peut filtrer par nom, favoris, « mes projets » ou « avec du retard ».
@@ -18,7 +18,8 @@ Il est conçu pour aller avec le thème [Glassfluid](https://github.com/TaikPaf/
 - **Raccourcis clavier** (`?` pour la liste) : `g m` Mon espace, `g p` Projets, `g i` Demandes, `g k` Kanban, `/` recherche, `c` nouvelle demande, `j` / `k` ligne suivante ou précédente, `p` aperçu de la ligne.
 - **Recherche en langage simple** : par exemple `moi en retard prio:haute export`. La ligne « Compris : » montre comment la phrase a été interprétée, et chaque critère se retire d'un clic. Les filtres et options d'affichage classiques de Redmine restent disponibles derrière les boutons *Filtres* (avec le nombre de filtres actifs) et *Affichage*.
 - **Icônes de statut et de priorité**, identiques dans Mon espace, les listes de demandes, la page d'une demande et le Kanban. Chaque statut appartient à une catégorie (Backlog, À faire, En cours, En revue, Terminé, Annulé) qui a son icône et sa couleur. Les catégories sont devinées à partir du nom des statuts et se règlent dans la configuration du plugin. La priorité s'affiche en barres (1 à 3), avec une icône rouge pour les deux plus hautes.
-- **Palette Ctrl+K** (⌘K sur Mac), sur toutes les pages : aller à une demande (`#123`), à un projet, chercher dans les sujets, lancer une action (`>`).
+- **Palette Ctrl+K** (⌘K sur Mac), sur toutes les pages : aller à une demande (`#123`), à un projet, chercher dans les sujets, lancer une action (`>`). Champ vide, elle propose les demandes et projets récents. Sur la page d'une demande, elle propose en premier « Passer à : … » (selon le workflow) et « Me l'assigner ».
+- **Zone de note toujours visible** sous l'historique d'une demande : on écrit, Ctrl+Entrée, et l'historique se met à jour sans recharger la page.
 - **Navigation de gauche** : Mon espace, Projets, Demandes, Kanban, Temps passé et projets favoris. En bas : les liens de la barre du haut de Redmine (Administration, Aide…), le compte, le mode clair ou sombre et la déconnexion.
   - À partir de 1280 px, elle est complète. Un bouton la réduit en colonne d'icônes, et ce choix est mémorisé.
   - Entre 900 et 1279 px, elle est réduite en icônes par défaut.

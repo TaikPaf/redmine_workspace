@@ -27,7 +27,7 @@
                      new_issue_path
                    end %>
 <nav id="gf-appnav" aria-label="<%= l(:label_workspace_navigation) %>"
-     data-palette-url="<%= workspace_palette_path(project_id: @project&.id) %>"
+     data-palette-url="<%= workspace_palette_path(project_id: @project&.id, issue_id: (@issue.id if @issue.is_a?(Issue) && @issue.persisted?)) %>"
      data-peek-url="<%= workspace_issue_peek_path(id: '__ID__') %>"
      data-new-issue-url="<%= new_issue_url %>"
      data-i18n="<%= {

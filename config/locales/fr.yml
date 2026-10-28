@@ -16,10 +16,8 @@ fr:
   text_workspace_empty_created: Vous n'avez créé aucune demande encore ouverte.
   text_workspace_empty_watched: Vous ne surveillez aucune demande ouverte.
   label_workspace_see_all: "Voir les %{count} demandes"
-  label_workspace_since_last_visit: Depuis votre dernière visite
   text_workspace_no_activity: Rien de nouveau sur vos demandes.
-  text_workspace_journal_comment: "%{user} a commenté %{issue}"
-  text_workspace_journal_change: "%{user} a modifié %{issue} : %{change}"
+  text_workspace_journal_line: "%{user} : %{text}"
   label_workspace_ago: "il y a %{time}"
   label_workspace_favorite_projects: Projets favoris
   label_workspace_assigned_to_me: à moi
@@ -143,3 +141,15 @@ fr:
   label_workspace_current_version: Version en cours
   label_workspace_activity: Activité
   label_workspace_none: Aucune
+  label_workspace_inbox_unread:
+    one: "1 demande avec du nouveau"
+    other: "%{count} demandes avec du nouveau"
+  label_workspace_inbox_all_read: Tout est lu. Les changements des 30 derniers jours restent affichés.
+  label_workspace_mark_all_read: Tout marquer comme lu
+  label_workspace_unread: Non lu
+  label_workspace_changes_count:
+    one: "1 changement"
+    other: "%{count} changements"
+  label_workspace_palette_this_issue: Cette demande
+  label_workspace_palette_move_to: "Passer à : %{status}"
+  label_workspace_palette_assign_me: Me l'assigner

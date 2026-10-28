@@ -10,9 +10,13 @@ class WorkspaceController < ApplicationController
 
   def index
     @space = RedmineWorkspace::MySpace.new(User.current)
-    @space.register_visit!
     @tab = (RedmineWorkspace::MySpace::TABS + ['activity']).include?(params[:tab]) ? params[:tab] : 'assigned'
     @issues = @tab == 'activity' ? [] : @space.issues(@tab)
+  end
+
+  def mark_all_read
+    RedmineWorkspace::MySpace.new(User.current).mark_all_read!
+    redirect_to workspace_path(tab: 'activity')
   end
 
   def projects
@@ -30,7 +34,8 @@ class WorkspaceController < ApplicationController
   end
 
   def palette
-    render json: RedmineWorkspace::Palette.new(User.current, project: @project, view: view_context).
+    issue = Issue.visible.find_by(id: params[:issue_id]) if params[:issue_id].present?
+    render json: RedmineWorkspace::Palette.new(User.current, project: @project, view: view_context, issue: issue).
       results(params[:q].to_s)
   end
 

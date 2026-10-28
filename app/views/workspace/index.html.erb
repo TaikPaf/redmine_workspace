@@ -1,6 +1,6 @@
 <% html_title(l(:label_workspace)) %>
 <% user = User.current %>
-<% activity = @space.activity %>
+<% unread = @space.unread_count %>
 
 <div class="gf-page gf-myspace">
   <header class="gf-page-header">
@@ -31,24 +31,46 @@
     <% end %>
     <%= link_to workspace_path(tab: 'activity'), class: ('selected' if @tab == 'activity'), 'aria-current': ('page' if @tab == 'activity') do %>
       <%= l(:label_workspace_tab_activity) %>
-      <% if activity.any? %><span class="gf-tab-badge"><%= l(:label_workspace_new_count, count: activity.size) %></span><% end %>
+      <% if unread > 0 %><span class="gf-tab-badge"><%= l(:label_workspace_new_count, count: unread) %></span><% end %>
     <% end %>
   </nav>
 
   <% if @tab == 'activity' %>
-    <section aria-label="<%= l(:label_workspace_tab_activity) %>">
-      <p class="gf-muted gf-small"><%= l(:label_workspace_since_last_visit) %> · <%= format_time(@space.since) %></p>
-      <% if activity.empty? %>
+    <section class="gf-inbox-section" aria-label="<%= l(:label_workspace_tab_activity) %>">
+      <div class="gf-inbox-head">
+        <p class="gf-muted gf-small"><%= unread > 0 ? l(:label_workspace_inbox_unread, count: unread) : l(:label_workspace_inbox_all_read) %></p>
+        <% if unread > 0 %>
+          <%= button_to l(:label_workspace_mark_all_read), workspace_mark_all_read_path, class: 'gf-button', form_class: 'gf-inline-form' %>
+        <% end %>
+      </div>
+      <% if @space.inbox.empty? %>
         <p class="gf-empty"><%= l(:text_workspace_no_activity) %></p>
       <% else %>
-        <ul class="gf-activity">
-          <% activity.each do |journal| %>
-            <li>
-              <%= avatar(journal.user, size: 24) %>
-              <div>
-                <%= link_to workspace_journal_summary(journal), issue_path(journal.issue, anchor: "note-#{journal.indice}") %>
-                <div class="gf-muted gf-small"><%= l(:label_workspace_ago, time: distance_of_time_in_words(Time.now, journal.created_on)) %></div>
-              </div>
+        <ul class="gf-inbox">
+          <% @space.inbox.each do |entry| %>
+            <% issue = entry.issue %>
+            <% latest = entry.latest %>
+            <li class="gf-inbox-item<%= ' unread' if entry.unread? %>">
+              <%= link_to issue_path(issue, anchor: "change-#{latest.id}"), class: 'gf-inbox-link' do %>
+                <span class="gf-unread-dot" aria-hidden="true"></span>
+                <% if entry.unread? %><span class="gf-visually-hidden"><%= l(:label_workspace_unread) %></span><% end %>
+                <%= avatar(latest.user, size: 24) %>
+                <span class="gf-inbox-text">
+                  <span class="gf-inbox-title">
+                    <span class="gf-issue-id">#<%= issue.id %></span>
+                    <span class="gf-inbox-subject"><%= issue.subject %></span>
+                    <span class="gf-issue-project"><%= workspace_project_dot(issue.project) %><%= issue.project %></span>
+                  </span>
+                  <span class="gf-inbox-change"><%= workspace_journal_line(latest) %></span>
+                </span>
+                <span class="gf-inbox-meta">
+                  <span><%= l(:label_workspace_ago, time: distance_of_time_in_words(Time.now, latest.created_on)) %></span>
+                  <% if entry.journals.size > 1 %>
+                    <span><%= l(:label_workspace_changes_count, count: entry.journals.size) %></span>
+                  <% end %>
+                </span>
+              <% end %>
+              <%= workspace_peek_button(issue) %>
             </li>
           <% end %>
         </ul>
