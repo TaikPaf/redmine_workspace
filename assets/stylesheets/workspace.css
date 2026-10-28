@@ -944,12 +944,46 @@ tr.issue td.subject .gf-peek-btn { margin-inline-start: 6px; }
 .gf-peek-props .gf-due { margin-inline-start: 6px; }
 .gf-peek-section h3 { margin: 0 0 8px; font-size: 0.875rem; font-weight: 600; }
 .gf-peek-section .wiki { font-size: 0.9375rem; line-height: 1.5rem; }
-.gf-peek-notes { list-style: none; margin: 0 0 12px; padding: 0; display: flex; flex-direction: column; gap: 12px; }
-.gf-peek-notes li { display: flex; gap: 10px; }
-.gf-peek-notes .avatar { flex: none; inline-size: 24px; block-size: 24px; }
-.gf-peek-note { flex: 1; min-inline-size: 0; border: 1px solid var(--ws-line); border-radius: var(--ws-radius); padding: 8px 12px; }
-.gf-peek-note p { margin: 0 0 4px; }
-.gf-peek-note .wiki p:last-child { margin-block-end: 0; }
+.gf-peek-notes { position: relative; list-style: none; margin: 0 0 12px; padding: 0; }
+.gf-peek-notes::before {
+  content: "";
+  position: absolute;
+  inset-block: 8px 0;
+  inset-inline-start: 11px;
+  border-inline-start: 2px solid var(--ws-line);
+}
+.gf-peek-notes > li { position: relative; display: flex; gap: 16px; padding-block-end: 16px; }
+.gf-peek-notes > li.has-details { padding-block-end: 12px; }
+.gf-peek-notes > li > .avatar {
+  position: relative;
+  flex: none;
+  inline-size: 24px;
+  block-size: 24px;
+  margin: 0;
+  box-shadow: 0 0 0 4px var(--gf-surface-raised, #fff);
+}
+.gf-peek-notes > li.has-notes > .avatar { margin-block-start: 6px; }
+.gf-peek-notes > li.has-details > .avatar { inline-size: 20px; block-size: 20px; margin: 2px; font-size: 0.5625rem; line-height: 20px; }
+.gf-peek-note { flex: 1; min-inline-size: 0; }
+.gf-peek-note-header { margin: 0; color: var(--ws-faint); font-size: 0.8125rem; line-height: 24px; }
+.gf-peek-note-header strong { color: var(--ws-text); font-weight: 600; }
+.gf-peek-notes li.has-notes .gf-peek-note-header {
+  padding: 3px 12px;
+  border: 1px solid var(--ws-line);
+  border-block-end: 0;
+  border-start-start-radius: var(--ws-radius);
+  border-start-end-radius: var(--ws-radius);
+  background: var(--ws-bg);
+}
+.gf-peek-note-body { padding: 10px 12px; border: 1px solid var(--ws-line); border-end-start-radius: var(--ws-radius); border-end-end-radius: var(--ws-radius); }
+.gf-peek-notes li.private-notes .gf-peek-note-body { border-inline-start: 3px solid var(--ws-warning); }
+.gf-peek-note .wiki > :first-child { margin-block-start: 0; }
+.gf-peek-note .wiki > :last-child { margin-block-end: 0; }
+.gf-peek-note .journal-details { margin: 0; padding: 0; list-style: none; color: var(--ws-muted); font-size: 0.8125rem; }
+.gf-peek-note-body .journal-details { margin-block-end: 8px; padding-block-end: 8px; border-block-end: 1px solid var(--ws-line); }
+.gf-peek-note .journal-details strong { color: var(--ws-text); font-weight: 500; }
+.gf-peek-note .journal-details i { font-style: normal; color: var(--ws-text); }
+.gf-peek-notes + .gf-peek-note-form { display: block; margin-inline-start: 40px; }
 .gf-peek-note-form { border: 1px solid var(--gf-control-border, #8e9097); border-radius: var(--ws-radius); }
 .gf-peek-note-form:focus-within { border-color: var(--ws-accent); box-shadow: 0 0 0 1px var(--ws-accent); }
 .gf-peek-note-form textarea {

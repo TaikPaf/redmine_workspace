@@ -2,7 +2,7 @@
 
 # In-place editing of a single issue attribute, and the side preview of an issue.
 class WorkspaceIssuesController < ApplicationController
-  PEEK_NOTES = 5
+  PEEK_JOURNALS = 8
 
   before_action :require_login
   before_action :find_issue
@@ -12,7 +12,9 @@ class WorkspaceIssuesController < ApplicationController
   helper :workspace
 
   def peek
-    @notes = @issue.visible_journals_with_index.select {|journal| journal.notes.present?}.last(PEEK_NOTES)
+    @notes = @issue.visible_journals_with_index.select do |journal|
+      journal.notes.present? || journal.visible_details.any?
+    end.last(PEEK_JOURNALS)
     RedmineWorkspace::RecentIssues.track(User.current, @issue)
     RedmineWorkspace::MySpace.new(User.current).mark_read!(@issue)
     render partial: 'workspace_issues/peek', locals: {issue: @issue, notes: @notes}

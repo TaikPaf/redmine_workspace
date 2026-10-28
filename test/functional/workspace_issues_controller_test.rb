@@ -17,6 +17,15 @@ class WorkspaceIssuesControllerTest < Redmine::ControllerTest
     assert_select '.gf-peek-note-form textarea[name=notes]'
   end
 
+  def test_peek_lists_attribute_changes_with_notes
+    issue = Issue.find(1)
+    issue.init_journal(User.find(2))
+    issue.update!(done_ratio: 70)
+    get :peek, params: {id: 1}
+    assert_select '.gf-peek-notes > li.has-details .journal-details li', text: /70/
+    assert_select '.gf-peek-notes > li.has-notes .gf-peek-note-body .wiki'
+  end
+
   def test_peek_of_missing_issue
     get :peek, params: {id: 999}
     assert_response :not_found

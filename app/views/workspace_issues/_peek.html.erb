@@ -51,14 +51,24 @@
     <% else %>
       <ol class="gf-peek-notes">
         <% notes.each do |journal| %>
-          <li>
+          <% details = details_to_strings(journal.visible_details) %>
+          <li class="<%= journal.notes.present? ? 'has-notes' : 'has-details' %><%= ' private-notes' if journal.private_notes? %>">
             <%= avatar(journal.user, size: 24) %>
             <div class="gf-peek-note">
-              <p class="gf-muted gf-small">
-                <strong><%= journal.user %></strong> · <%= l(:label_workspace_ago, time: distance_of_time_in_words(Time.now, journal.created_on)) %>
+              <p class="gf-peek-note-header">
+                <strong><%= journal.user %></strong> <%= l(:label_workspace_ago, time: distance_of_time_in_words(Time.now, journal.created_on)) %>
                 <% if journal.private_notes? %> · <%= l(:field_is_private) %><% end %>
               </p>
-              <div class="wiki"><%= textilizable(journal, :notes) %></div>
+              <% if journal.notes.present? %>
+                <div class="gf-peek-note-body">
+                  <% if details.any? %>
+                    <ul class="journal-details"><% details.each do |detail| %><li><%= detail %></li><% end %></ul>
+                  <% end %>
+                  <div class="wiki"><%= textilizable(journal, :notes) %></div>
+                </div>
+              <% else %>
+                <ul class="journal-details"><% details.each do |detail| %><li><%= detail %></li><% end %></ul>
+              <% end %>
             </div>
           </li>
         <% end %>
