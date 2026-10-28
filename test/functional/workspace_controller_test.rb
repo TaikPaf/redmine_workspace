@@ -43,6 +43,8 @@ class WorkspaceControllerTest < Redmine::ControllerTest
     assert_response :success
     assert_select '.gf-project-card', Project.visible(User.find(2)).where(status: Project::STATUS_ACTIVE).count
     assert_select '.gf-project-card [data-gf-bookmark]', minimum: 1
+    assert_select '.gf-project-table tr.gf-project-item', Project.visible(User.find(2)).where(status: Project::STATUS_ACTIVE).count
+    assert_select '.gf-project-table tr.gf-depth-1', minimum: 1
   end
 
   def test_search_redirects_to_issues_with_filters
@@ -94,9 +96,24 @@ class WorkspaceHooksTest < Redmine::ControllerTest
   def test_issues_index_shows_quick_views_and_parsed_tokens
     get :index, params: {project_id: 'ecookbook', gf_q: 'moi retard', set_filter: '1'}
     assert_response :success
-    assert_select '#gf-issues-panel .gf-chip', RedmineWorkspace::QuickViews::DEFINITIONS.size
+    assert_select '#gf-issues-panel .gf-chip:not(.gf-chip-saved):not(.gf-chip-add)', RedmineWorkspace::QuickViews::DEFINITIONS.size
     assert_select '#gf-issues-panel .gf-token', 2
     assert_select '#gf-appnav .gf-appnav-link', minimum: 3
+  end
+
+  def test_issues_index_shows_saved_queries_as_views
+    query = IssueQuery.visible(User.find(2)).global_or_on_project(Project.find(1)).sorted.first
+    get :index, params: {project_id: 'ecookbook', query_id: query.id}
+    assert_response :success
+    assert_select "#gf-issues-panel a.gf-chip-saved.active[href*='query_id=#{query.id}']", text: /#{Regexp.escape(query.name)}/
+    assert_select '#gf-issues-panel [data-gf-save-view]'
+  end
+
+  def test_layout_has_tab_bar_and_navigation_mode_script
+    get :index, params: {project_id: 'ecookbook'}
+    assert_select '#gf-tabbar .gf-tab', minimum: 4
+    assert_select '#gf-appnav [data-gf-nav-toggle]'
+    assert_includes response.body, 'gfSetNavMode'
   end
 
   def test_issue_show_has_status_buttons_and_tracks_recent

@@ -697,6 +697,190 @@
     }
   };
 
+  /* ---------- Navigation controls ---------- */
+
+  function initNavControls() {
+    var toggle = document.querySelector('[data-gf-nav-toggle]');
+    var root = document.documentElement;
+    function sync() {
+      if (!toggle) { return; }
+      var label = toggle.getAttribute(root.classList.contains('gf-rail') ? 'data-label-expand' : 'data-label-collapse');
+      toggle.setAttribute('aria-label', label);
+      toggle.title = label;
+    }
+    if (toggle && window.gfSetNavMode) {
+      toggle.addEventListener('click', function () {
+        window.gfSetNavMode(root.classList.contains('gf-rail') ? 'full' : 'rail');
+        sync();
+      });
+      window.addEventListener('resize', sync);
+      sync();
+    }
+
+    // On phones, "More" opens Redmine's own menu (projects, account, administration...).
+    var more = document.querySelector('[data-gf-more-menu]');
+    if (more) {
+      more.addEventListener('click', function () {
+        var native = document.querySelector('#header .mobile-toggle-button');
+        if (native) { native.click(); }
+      });
+    }
+
+    var save = document.querySelector('[data-gf-save-view]');
+    if (save) {
+      save.addEventListener('click', function () {
+        var link = document.querySelector('#query_form p.buttons a.icon-save');
+        if (link) { link.click(); }
+      });
+    }
+  }
+
+  /* ---------- Bulk action bar on issue lists ---------- */
+
+  var BulkBar = {
+    init: function (i18n) {
+      var table = document.querySelector('form[data-cm-url] table.list.issues');
+      if (!table || typeof window.contextMenuShow !== 'function') { return; }
+      this.i18n = i18n;
+      var self = this;
+      this.bar = el('div', 'gf-bulk-bar');
+      this.bar.setAttribute('role', 'toolbar');
+      this.bar.hidden = true;
+      this.count = el('span', 'gf-bulk-count');
+      this.count.setAttribute('aria-live', 'polite');
+      var actions = el('button', 'gf-bulk-action', i18n.bulk_actions || '');
+      actions.type = 'button';
+      var clear = el('button', 'gf-bulk-clear');
+      clear.type = 'button';
+      clear.setAttribute('aria-label', i18n.bulk_clear || '');
+      clear.title = i18n.bulk_clear || '';
+      clear.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>';
+      this.bar.appendChild(this.count);
+      this.bar.appendChild(actions);
+      this.bar.appendChild(clear);
+      document.body.appendChild(this.bar);
+
+      // Redmine clears the selection on any click outside the rows; keep the bar's clicks to ourselves.
+      this.bar.addEventListener('mousedown', function (e) { e.stopPropagation(); });
+      this.bar.addEventListener('click', function (e) { e.stopPropagation(); });
+      actions.addEventListener('click', function () {
+        var selected = document.querySelector('tr.issue.context-menu-selection input[type=checkbox]');
+        if (!selected) { return; }
+        var box = actions.getBoundingClientRect();
+        window.contextMenuShow({
+          target: selected,
+          pageX: box.left + window.scrollX,
+          pageY: box.top + window.scrollY - 8,
+          clientY: box.top - 8
+        });
+      });
+      clear.addEventListener('click', function () {
+        if (typeof window.contextMenuUnselectAll === 'function') { window.contextMenuUnselectAll(); }
+        if (typeof window.contextMenuHide === 'function') { window.contextMenuHide(); }
+        self.update();
+      });
+      ['click', 'change', 'keyup'].forEach(function (type) {
+        document.addEventListener(type, function () { window.setTimeout(function () { self.update(); }, 0); });
+      });
+      this.update();
+    },
+
+    update: function () {
+      var n = document.querySelectorAll('tr.issue.context-menu-selection').length;
+      this.bar.hidden = n === 0;
+      this.count.textContent = n === 1 ? (this.i18n.bulk_one || '1') : (this.i18n.bulk_other || '__N__').replace('__N__', n);
+    }
+  };
+
+  /* ---------- Keyboard shortcuts ---------- */
+
+  var Shortcuts = {
+    init: function (nav, i18n) {
+      this.nav = nav;
+      this.i18n = i18n;
+      var self = this;
+      document.addEventListener('keydown', function (e) { self.onKey(e); });
+    },
+
+    rows: function () {
+      return Array.prototype.slice.call(document.querySelectorAll(
+        '.gf-issue-row, tr.issue td.subject > a, .kanban-card .kanban-card-subject a'
+      )).filter(function (node) { return node.offsetParent !== null && !node.closest('.gf-peek'); });
+    },
+
+    go: function (selector) {
+      var link = this.nav.querySelector(selector);
+      if (link) { window.location.href = link.href; }
+    },
+
+    onKey: function (e) {
+      if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey) { return; }
+      if (e.target.closest && e.target.closest('input, textarea, select, [contenteditable], .gf-palette')) { return; }
+      if (document.querySelector('.ui-dialog:not([style*="display: none"]) .ui-dialog-content')) { return; }
+      var key = e.key;
+
+      if (this.pendingG) {
+        this.pendingG = false;
+        var target = {m: '.gf-appnav-workspace', p: '.gf-appnav-projects', i: '.gf-appnav-issues', k: '.gf-appnav-kanban'}[key];
+        if (target) { e.preventDefault(); this.go(target); }
+        return;
+      }
+      if (key === 'g') { this.pendingG = true; var self = this; window.setTimeout(function () { self.pendingG = false; }, 1200); return; }
+
+      if (key === '/') {
+        var field = document.getElementById('gf-smart-q') || document.querySelector('[data-gf-project-filter]');
+        e.preventDefault();
+        if (field) { field.focus(); field.select(); } else { document.querySelector('[data-gf-palette-open]').click(); }
+      } else if (key === 'c' && this.nav.getAttribute('data-new-issue-url')) {
+        e.preventDefault();
+        window.location.href = this.nav.getAttribute('data-new-issue-url');
+      } else if (key === '?') {
+        e.preventDefault();
+        this.help();
+      } else if (key === 'j' || key === 'k') {
+        var rows = this.rows();
+        if (!rows.length) { return; }
+        e.preventDefault();
+        var index = rows.indexOf(document.activeElement);
+        var next = index < 0 ? 0 : Math.max(0, Math.min(rows.length - 1, index + (key === 'j' ? 1 : -1)));
+        rows[next].focus();
+        rows[next].scrollIntoView({block: 'nearest'});
+      } else if (key === 'p') {
+        var holder = document.activeElement && document.activeElement.closest('li, tr, .kanban-card');
+        var peek = holder && holder.querySelector('[data-gf-peek]');
+        if (peek) { e.preventDefault(); peek.click(); }
+      }
+    },
+
+    help: function () {
+      if (this.dialog) { this.dialog.showModal(); return; }
+      var dialog = el('dialog', 'gf-shortcuts');
+      dialog.setAttribute('aria-labelledby', 'gf-shortcuts-title');
+      var title = el('h2', null, this.i18n.shortcuts || '');
+      title.id = 'gf-shortcuts-title';
+      dialog.appendChild(title);
+      var list = el('dl');
+      (this.i18n.shortcut_list || []).forEach(function (pair) {
+        var row = el('div');
+        var dt = el('dt');
+        var keys = pair[0] === '/' ? ['/'] : pair[0].split(' ');
+        keys.forEach(function (k) { dt.appendChild(k === '/' && keys.length > 1 ? document.createTextNode(' / ') : el('kbd', null, k)); });
+        row.appendChild(dt);
+        row.appendChild(el('dd', null, pair[1]));
+        list.appendChild(row);
+      });
+      dialog.appendChild(list);
+      var close = el('button', 'gf-button', this.i18n.close || 'OK');
+      close.type = 'button';
+      close.addEventListener('click', function () { dialog.close(); });
+      dialog.appendChild(close);
+      dialog.addEventListener('click', function (e) { if (e.target === dialog) { dialog.close(); } });
+      document.body.appendChild(dialog);
+      this.dialog = dialog;
+      dialog.showModal();
+    }
+  };
+
   /* ---------- Projects page ---------- */
 
   function initProjects() {
@@ -704,21 +888,40 @@
     if (!page) { return; }
     var search = page.querySelector('[data-gf-project-filter]');
     var chips = page.querySelectorAll('[data-gf-project-chip]');
-    var cards = page.querySelectorAll('.gf-project-card');
+    var items = page.querySelectorAll('.gf-project-item');
     var empty = page.querySelector('[data-gf-projects-empty]');
+    var switches = page.querySelectorAll('[data-gf-projects-view]');
     var filter = 'all';
+    var VIEW_KEY = 'glassfluid:projects-view';
 
     function apply() {
       var term = (search.value || '').toLowerCase().trim();
       var visible = 0;
-      cards.forEach(function (card) {
-        var ok = (!term || card.getAttribute('data-name').indexOf(term) >= 0) &&
-          (filter === 'all' || card.getAttribute('data-' + filter) === 'true');
-        card.hidden = !ok;
+      items.forEach(function (item) {
+        var ok = (!term || item.getAttribute('data-name').indexOf(term) >= 0) &&
+          (filter === 'all' || item.getAttribute('data-' + filter) === 'true');
+        item.hidden = !ok;
         if (ok) { visible++; }
       });
-      if (empty) { empty.hidden = visible > 0 || cards.length === 0; }
+      if (empty) { empty.hidden = visible > 0 || items.length === 0; }
     }
+
+    function showView(view) {
+      page.querySelectorAll('[data-gf-projects-pane]').forEach(function (pane) {
+        pane.hidden = pane.getAttribute('data-gf-projects-pane') !== view;
+      });
+      switches.forEach(function (s) { s.setAttribute('aria-pressed', s.getAttribute('data-gf-projects-view') === view ? 'true' : 'false'); });
+    }
+    var savedView = null;
+    try { savedView = window.localStorage.getItem(VIEW_KEY); } catch (e) {}
+    showView(savedView === 'grid' ? 'grid' : 'list');
+    switches.forEach(function (s) {
+      s.addEventListener('click', function () {
+        var view = s.getAttribute('data-gf-projects-view');
+        showView(view);
+        try { window.localStorage.setItem(VIEW_KEY, view); } catch (e) {}
+      });
+    });
 
     search.addEventListener('input', apply);
     chips.forEach(function (chip) {
@@ -740,10 +943,13 @@
       }).then(function (r) {
         if (!r.ok) { return; }
         var label = star.getAttribute(on ? 'data-label-on' : 'data-label-off');
-        star.setAttribute('aria-pressed', on ? 'true' : 'false');
-        star.setAttribute('aria-label', label);
-        star.setAttribute('title', label);
-        star.closest('.gf-project-card').setAttribute('data-bookmarked', on ? 'true' : 'false');
+        // The same project has a star in the list and in the grid.
+        page.querySelectorAll('[data-gf-bookmark][data-project-id="' + star.getAttribute('data-project-id') + '"]').forEach(function (s) {
+          s.setAttribute('aria-pressed', on ? 'true' : 'false');
+          s.setAttribute('aria-label', label);
+          s.setAttribute('title', label);
+          s.closest('.gf-project-item').setAttribute('data-bookmarked', on ? 'true' : 'false');
+        });
         apply();
       });
     });
@@ -757,7 +963,12 @@
     if (nav) { try { i18n = JSON.parse(nav.getAttribute('data-i18n')) || {}; } catch (e) { i18n = {}; } }
     placeIssuesPanel();
     IssuePage.init(i18n);
-    if (nav) { Peek.init(nav, i18n); }
+    if (nav) {
+      Peek.init(nav, i18n);
+      Shortcuts.init(nav, i18n);
+    }
+    initNavControls();
+    BulkBar.init(i18n);
     initProjects();
   });
 })();

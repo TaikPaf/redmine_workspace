@@ -2,19 +2,34 @@
 <% nav_user = User.current %>
 <% current_path = request.path %>
 <% favorites = Project.visible.where(id: nav_user.bookmarked_project_ids).sorted.limit(8).to_a %>
+<% icons = {
+     workspace: '<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+     projects: '<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>',
+     issues: '<path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/>',
+     kanban: '<rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="11" rx="1.5"/><rect x="17" y="4" width="4" height="7" rx="1.5"/>',
+     time: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+     search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
+     more: '<circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>'
+   } %>
 <% items = [] %>
-<% items << [:workspace, l(:label_workspace), workspace_path, current_path == workspace_path, '<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>'] %>
-<% items << [:projects, l(:label_workspace_projects), workspace_projects_path, current_path.start_with?(workspace_projects_path) || current_path == projects_path, '<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>'] %>
-<% items << [:issues, l(:label_issue_plural), issues_path, current_path == issues_path, '<path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/>'] %>
+<% items << [:workspace, l(:label_workspace), workspace_path, current_path == workspace_path] %>
+<% items << [:projects, l(:label_workspace_projects), workspace_projects_path, current_path.start_with?(workspace_projects_path) || current_path == projects_path] %>
+<% items << [:issues, l(:label_issue_plural), issues_path, current_path == issues_path] %>
 <% if respond_to?(:kanban_path) && nav_user.allowed_to?(:view_kanban, nil, global: true) %>
-  <% items << [:kanban, l(:label_kanban), kanban_path, current_path == kanban_path, '<rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="11" rx="1.5"/><rect x="17" y="4" width="4" height="7" rx="1.5"/>'] %>
+  <% items << [:kanban, l(:label_kanban), kanban_path, current_path == kanban_path] %>
 <% end %>
 <% if nav_user.allowed_to?(:view_time_entries, nil, global: true) %>
-  <% items << [:time, l(:label_spent_time), time_entries_path, current_path == time_entries_path, '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'] %>
+  <% items << [:time, l(:label_spent_time), time_entries_path, current_path == time_entries_path] %>
 <% end %>
+<% new_issue_url = if @project&.persisted? && nav_user.allowed_to?(:add_issues, @project)
+                     new_project_issue_path(@project)
+                   elsif nav_user.allowed_to?(:add_issues, nil, global: true)
+                     new_issue_path
+                   end %>
 <nav id="gf-appnav" aria-label="<%= l(:label_workspace_navigation) %>"
      data-palette-url="<%= workspace_palette_path(project_id: @project&.id) %>"
      data-peek-url="<%= workspace_issue_peek_path(id: '__ID__') %>"
+     data-new-issue-url="<%= new_issue_url %>"
      data-i18n="<%= {
        peek: l(:label_workspace_peek),
        peek_of: l(:label_workspace_peek_of, id: '__ID__'),
@@ -31,23 +46,36 @@
        hint_issue: l(:label_workspace_palette_hint_issue),
        hint_actions: l(:label_workspace_palette_hint_actions),
        close: l(:button_close),
-       title: l(:label_workspace_palette_title)
+       title: l(:label_workspace_palette_title),
+       bulk_one: l(:label_workspace_bulk_one),
+       bulk_other: l(:label_workspace_bulk_other, count: '__N__'),
+       bulk_actions: l(:label_workspace_bulk_actions),
+       bulk_clear: l(:label_workspace_bulk_clear),
+       save_view: l(:label_workspace_save_view),
+       shortcuts: l(:label_workspace_shortcuts),
+       shortcut_list: [
+         ['g m', l(:label_workspace)], ['g p', l(:label_workspace_projects)], ['g i', l(:label_issue_plural)],
+         (['g k', l(:label_kanban)] if items.any? {|i| i[0] == :kanban}), ['/', l(:label_search)],
+         (['c', l(:label_issue_new)] if new_issue_url), ['Ctrl K', l(:label_workspace_palette_title)],
+         ['j / k', l(:label_workspace_shortcut_move)], [l(:label_workspace_key_enter), l(:label_workspace_shortcut_open)],
+         ['p', l(:label_workspace_peek)], ['?', l(:label_workspace_shortcuts)]
+       ].compact
      }.to_json %>">
-  <%= link_to home_path, class: 'gf-appnav-brand' do %>
+  <%= link_to home_path, class: 'gf-appnav-brand', title: Setting.app_title do %>
     <span class="gf-appnav-logo" aria-hidden="true"></span>
-    <span><%= Setting.app_title %></span>
+    <span class="gf-appnav-text"><%= Setting.app_title %></span>
   <% end %>
-  <button type="button" class="gf-appnav-search" data-gf-palette-open>
-    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-    <span><%= l(:label_search) %>…</span>
+  <button type="button" class="gf-appnav-search" data-gf-palette-open title="<%= l(:label_search) %> (Ctrl K)">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><%= icons[:search].html_safe %></svg>
+    <span class="gf-appnav-text"><%= l(:label_search) %>…</span>
     <kbd>Ctrl K</kbd>
   </button>
   <ul class="gf-appnav-links">
-    <% items.each do |key, label, url, active, icon| %>
+    <% items.each do |key, label, url, active| %>
       <li>
-        <%= link_to url, class: "gf-appnav-link gf-appnav-#{key}#{' active' if active}", 'aria-current': (active ? 'page' : nil) do %>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><%= icon.html_safe %></svg>
-          <span><%= label %></span>
+        <%= link_to url, class: "gf-appnav-link gf-appnav-#{key}#{' active' if active}", title: label, 'aria-current': (active ? 'page' : nil) do %>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><%= icons[key].html_safe %></svg>
+          <span class="gf-appnav-text"><%= label %></span>
         <% end %>
       </li>
     <% end %>
@@ -58,9 +86,9 @@
       <% favorites.each do |project| %>
         <% active = @project && @project.id == project.id %>
         <li>
-          <%= link_to project_path(project), class: "gf-appnav-link#{' active' if active}", 'aria-current': (active ? 'page' : nil) do %>
+          <%= link_to project_path(project), class: "gf-appnav-link#{' active' if active}", title: project.name, 'aria-current': (active ? 'page' : nil) do %>
             <span class="gf-appnav-dot" style="background: <%= RedmineWorkspace::ProjectsOverview.color_for(project) %>" aria-hidden="true"></span>
-            <span><%= project.name %></span>
+            <span class="gf-appnav-text"><%= project.name %></span>
           <% end %>
         </li>
       <% end %>
@@ -71,9 +99,14 @@
     <div class="gf-appnav-account">
       <%= link_to my_account_path, class: 'gf-appnav-user', title: l(:label_my_account) do %>
         <%= avatar(nav_user, size: 28) %>
-        <span><%= nav_user.name %></span>
+        <span class="gf-appnav-text"><%= nav_user.name %></span>
       <% end %>
       <span class="gf-theme-toggle-slot"></span>
+      <button type="button" class="gf-appnav-icon-link gf-appnav-collapse" data-gf-nav-toggle
+              data-label-collapse="<%= l(:label_workspace_nav_collapse) %>" data-label-expand="<%= l(:label_workspace_nav_expand) %>"
+              aria-label="<%= l(:label_workspace_nav_collapse) %>" title="<%= l(:label_workspace_nav_collapse) %>">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg>
+      </button>
       <%= link_to signout_path, method: :post, class: 'gf-appnav-icon-link', title: l(:label_logout), 'aria-label': l(:label_logout) do %>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
       <% end %>
@@ -87,5 +120,24 @@
       <span data-priority="<%= level %>"><%= RedmineWorkspace::Icons.priority_svg(level).html_safe %></span>
     <% end %>
   </template>
+</nav>
+
+<nav id="gf-tabbar" aria-label="<%= l(:label_workspace_navigation) %>">
+  <% items.select {|key, *| %i(workspace issues kanban).include?(key) }.each_with_index do |(key, label, url, active), index| %>
+    <%= link_to url, class: "gf-tab#{' active' if active}", 'aria-current': (active ? 'page' : nil) do %>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><%= icons[key].html_safe %></svg>
+      <span><%= label %></span>
+    <% end %>
+    <% if index == 1 %>
+      <button type="button" class="gf-tab" data-gf-palette-open>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><%= icons[:search].html_safe %></svg>
+        <span><%= l(:label_search) %></span>
+      </button>
+    <% end %>
+  <% end %>
+  <button type="button" class="gf-tab" data-gf-more-menu>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><%= icons[:more].html_safe %></svg>
+    <span><%= l(:label_workspace_more) %></span>
+  </button>
 </nav>
 <% end %>

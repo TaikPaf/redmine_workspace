@@ -47,8 +47,8 @@
 
 /* ---------- App navigation ---------- */
 
-#gf-appnav { display: none; }
-@media screen and (min-width: 1100px) {
+#gf-appnav, #gf-tabbar { display: none; }
+@media screen and (min-width: 900px) {
   body.gf-has-appnav #wrapper, body:has(> #gf-appnav) #wrapper {
     margin-inline-start: 240px;
     border-inline-start: 1px solid var(--ws-line);
@@ -196,15 +196,89 @@ kbd, .gf-appnav-search kbd {
   color: var(--ws-muted) !important;
 }
 .gf-appnav-icon-link:hover { background: var(--ws-hover); color: var(--ws-text) !important; }
-.gf-appnav-icon-link svg { inline-size: 18px; block-size: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.gf-appnav-icon-link svg { inline-size: 16px; block-size: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+button.gf-appnav-icon-link { min-block-size: 32px !important; padding: 0 !important; border: 0 !important; background: transparent !important; cursor: pointer; }
+button.gf-appnav-icon-link:hover { background: var(--ws-hover) !important; }
 
 /* With the side navigation, the top bar and the header search are redundant. */
-@media screen and (min-width: 1100px) {
+@media screen and (min-width: 900px) {
   body.gf-has-appnav #top-menu,
   body:has(> #gf-appnav) #top-menu,
   body.gf-has-appnav #header #quick-search,
   body:has(> #gf-appnav) #header #quick-search { display: none; }
   body.controller-workspace #header { display: none; }
+}
+
+/* Icon rail: 56 px, labels kept for screen readers and shown as tooltips. */
+@media screen and (min-width: 900px) {
+  html.gf-rail body.gf-has-appnav #wrapper, html.gf-rail body:has(> #gf-appnav) #wrapper { margin-inline-start: 56px; }
+  html.gf-rail #gf-appnav { inline-size: 56px; padding: 12px 8px; align-items: center; }
+  html.gf-rail #gf-appnav .gf-appnav-text,
+  html.gf-rail #gf-appnav .gf-appnav-search kbd {
+    position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+  }
+  html.gf-rail .gf-appnav-brand { padding: 6px 0; }
+  html.gf-rail .gf-appnav-search { inline-size: 40px; padding: 0 !important; justify-content: center; }
+  html.gf-rail .gf-appnav-links { align-items: center; }
+  html.gf-rail .gf-appnav-link { inline-size: 40px; padding: 0; justify-content: center; }
+  html.gf-rail .gf-appnav-heading { inline-size: 24px; block-size: 1px; margin: 12px auto 8px !important; background: var(--ws-line); font-size: 0 !important; }
+  html.gf-rail .gf-appnav-footer { align-items: center; inline-size: 100%; }
+  html.gf-rail .gf-appnav-account { flex-direction: column; padding: 0; }
+  html.gf-rail .gf-appnav-user { padding: 4px; flex: none; }
+  html.gf-rail .gf-appnav-collapse svg { transform: scaleX(-1); }
+  /* Administration, Help and other top-menu links open from the footer. */
+  html.gf-rail .gf-appnav-more {
+    display: none;
+    position: fixed;
+    inset-inline-start: 60px;
+    inset-block-end: 12px;
+    z-index: 60;
+    min-inline-size: 180px;
+    padding: 4px;
+    border-radius: var(--ws-radius);
+    background: var(--gf-surface-raised, #fff);
+    box-shadow: var(--ws-shadow-pop);
+  }
+  html.gf-rail .gf-appnav-footer:hover .gf-appnav-more,
+  html.gf-rail .gf-appnav-footer:focus-within .gf-appnav-more { display: block; }
+}
+
+/* Phones: a tab bar at the bottom instead of the side navigation. */
+@media screen and (max-width: 899px) {
+  #gf-tabbar {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    position: fixed;
+    z-index: 60;
+    inset-inline: 0;
+    inset-block-end: 0;
+    block-size: calc(60px + env(safe-area-inset-bottom));
+    padding-block-end: env(safe-area-inset-bottom);
+    background: var(--gf-surface, #fff);
+    border-block-start: 1px solid var(--ws-line);
+  }
+  body:has(> #gf-tabbar) { padding-block-end: calc(60px + env(safe-area-inset-bottom)); }
+  .gf-tab {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    min-block-size: 44px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    color: var(--ws-muted) !important;
+    font: inherit;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    text-decoration: none !important;
+    cursor: pointer;
+  }
+  .gf-tab svg { inline-size: 22px; block-size: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .gf-tab.active { color: var(--ws-accent) !important; font-weight: 600; }
 }
 
 /* ---------- Shared page pieces ---------- */
@@ -416,6 +490,14 @@ html[data-gf-theme="dark"] .gf-status-progress { color: #f0b45e; }
 .gf-issue-row .gf-status { inline-size: 120px; flex: none; font-size: 0.8125rem; overflow: hidden; }
 .gf-issue-row .gf-due { inline-size: 64px; flex: none; text-align: end; }
 .gf-more { margin: 8px 0 4px 36px; }
+/* Phones: each row becomes a two-line card, the subject on its own line. */
+@media screen and (max-width: 899px) {
+  .gf-issue-row { flex-wrap: wrap; gap: 2px 10px; padding-block: 8px; }
+  .gf-issue-row .gf-issue-subject { order: 10; flex-basis: 100%; white-space: normal; }
+  .gf-issue-row .gf-status { inline-size: auto; }
+  .gf-issue-row .gf-due { margin-inline-start: auto; inline-size: auto; }
+  .gf-issue-item .gf-peek-btn { align-self: flex-start; margin-block-start: 6px; }
+}
 
 .gf-activity { list-style: none; margin: 0; padding: 0; }
 .gf-activity li { display: flex; gap: 10px; padding-block: 10px; border-block-start: 1px solid var(--ws-line); }
@@ -481,12 +563,104 @@ html[data-gf-theme="dark"] .gf-status-progress { color: #f0b45e; }
 .gf-progress { block-size: 6px; border-radius: 999px; overflow: hidden; background: var(--ws-line); }
 .gf-progress span { display: block; block-size: 100%; border-radius: 999px; background: var(--ws-accent-solid); }
 .gf-project-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-block-start: auto; }
-.gf-project-links { display: flex; gap: 12px; font-weight: 600; font-size: 0.8125rem; }
+.gf-project-links-inline { display: flex; gap: 12px; font-weight: 600; font-size: 0.8125rem; }
+.gf-star[aria-pressed="true"] { color: var(--ws-warning); }
+
+.gf-projects { max-inline-size: 1100px; }
+.gf-projects .gf-page-header h2 { font-size: 1.25rem; line-height: 1.75rem; font-weight: 600; letter-spacing: -0.01em; }
+.gf-projects-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.gf-projects-toolbar .gf-search-field { flex: 1 1 220px; }
+.gf-projects .gf-chip { min-block-size: 30px !important; padding-inline: 10px !important; border-radius: var(--ws-radius-sm) !important; font-weight: 500; }
+.gf-view-switch { display: inline-flex; padding: 2px; border-radius: var(--ws-radius-sm); background: var(--gf-surface-sunken, #f0f0ee); border: 1px solid var(--ws-line); }
+.gf-view-switch button {
+  inline-size: 32px; block-size: 30px; min-block-size: 30px !important; padding: 0 !important;
+  display: inline-flex !important; align-items: center; justify-content: center;
+  border: 0 !important; border-radius: 4px !important; background: transparent !important; color: var(--ws-muted); cursor: pointer;
+}
+.gf-view-switch button[aria-pressed="true"] { background: var(--gf-surface, #fff) !important; color: var(--ws-text); box-shadow: 0 1px 2px rgba(16, 17, 20, .08); }
+.gf-view-switch svg { inline-size: 15px; block-size: 15px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.gf-project-list { overflow-x: auto; }
+.gf-project-table { inline-size: 100%; min-inline-size: 760px; }
+.gf-project-table .gf-num { inline-size: 84px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+table.list.gf-project-table td, table.list.gf-project-table th { vertical-align: middle; text-align: start; }
+table.list.gf-project-table .gf-num { text-align: end; }
+[data-gf-projects-pane][hidden] { display: none; }
+.gf-project-table tr[hidden] { display: none; }
+.gf-project-name { display: flex; align-items: center; gap: 10px; }
+.gf-project-name .gf-star { inline-size: 28px; block-size: 28px; min-block-size: 28px !important; }
+.gf-project-name .gf-star svg { inline-size: 16px; block-size: 16px; }
+.gf-project-name .gf-project-title a { display: block; font-weight: 600; color: var(--ws-text); }
+.gf-project-name .gf-project-title .gf-small { display: block; }
+.gf-depth-1 .gf-project-name { padding-inline-start: 24px; }
+.gf-depth-2 .gf-project-name { padding-inline-start: 48px; }
+.gf-depth-3 .gf-project-name { padding-inline-start: 72px; }
+.gf-project-links { display: flex; gap: 4px; margin-inline-start: auto; opacity: 0; transition: opacity .12s ease-out; }
+.gf-project-links .gf-button { min-block-size: 26px; padding-inline: 8px; font-size: 0.75rem; font-weight: 500; }
+.gf-project-item:hover .gf-project-links, .gf-project-item:focus-within .gf-project-links { opacity: 1; }
+@media (hover: none) { .gf-project-links { opacity: 1; } }
+.gf-late-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-inline-size: 22px; block-size: 22px; padding-inline: 6px; box-sizing: border-box;
+  border-radius: 999px; background: var(--gf-danger-soft, #fdeeee); color: var(--ws-danger) !important; font-weight: 600;
+}
+.gf-version-cell { display: flex; flex-direction: column; gap: 5px; font-size: 0.8125rem; }
+.gf-version-cell .gf-progress { inline-size: 150px; block-size: 4px; }
+
+/* ---------- Bulk action bar ---------- */
+
+.gf-bulk-bar {
+  position: fixed;
+  z-index: 70;
+  inset-block-end: 16px;
+  inset-inline-start: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 6px 6px 14px;
+  border-radius: 10px;
+  background: var(--gf-surface-raised, #fff);
+  box-shadow: var(--ws-shadow-pop);
+  font-size: 0.875rem;
+}
+.gf-bulk-bar[hidden] { display: none; }
+.gf-bulk-count { font-weight: 600; margin-inline-end: 8px; font-variant-numeric: tabular-nums; }
+.gf-bulk-action, .gf-bulk-clear {
+  display: inline-flex !important; align-items: center; justify-content: center; gap: 4px;
+  min-block-size: 30px !important; padding-inline: 10px !important;
+  border: 0 !important; border-radius: var(--ws-radius-sm) !important; background: transparent !important;
+  color: var(--ws-text); font: inherit; font-weight: 500; cursor: pointer;
+}
+.gf-bulk-action:hover, .gf-bulk-clear:hover { background: var(--ws-hover) !important; }
+.gf-bulk-clear { inline-size: 30px; padding: 0 !important; color: var(--ws-muted); }
+.gf-bulk-clear svg { inline-size: 14px; block-size: 14px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; }
+@media screen and (max-width: 899px) { .gf-bulk-bar { inset-block-end: calc(72px + env(safe-area-inset-bottom)); } }
+
+/* ---------- Shortcuts help ---------- */
+
+.gf-shortcuts {
+  inline-size: min(440px, calc(100vw - 32px));
+  padding: 20px 24px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--gf-surface-raised, #fff);
+  color: var(--ws-text);
+  box-shadow: var(--ws-shadow-pop);
+}
+.gf-shortcuts::backdrop { background: rgba(16, 17, 20, 0.4); }
+.gf-shortcuts h2 { margin: 0 0 12px; font-size: 1rem; font-weight: 600; }
+.gf-shortcuts dl { margin: 0 0 16px; display: flex; flex-direction: column; gap: 6px; }
+.gf-shortcuts dl > div { display: flex; align-items: center; gap: 12px; }
+.gf-shortcuts dt { inline-size: 96px; flex: none; display: flex; align-items: center; gap: 4px; color: var(--ws-muted); }
+.gf-shortcuts dd { margin: 0; }
 
 /* ---------- Issues list panel ---------- */
 
 .gf-issues-panel { position: relative; display: flex; flex-direction: column; gap: 12px; margin-block: 4px 18px; }
-.gf-issues-panel .gf-chips { gap: 6px; }
+.gf-issues-panel .gf-chips { gap: 6px; align-items: center; }
+.gf-chips-separator { inline-size: 1px; block-size: 18px; margin-inline: 4px; background: var(--ws-line-strong); }
+.gf-issues-panel .gf-chip svg { inline-size: 13px; block-size: 13px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.gf-issues-panel .gf-chip-add { border-color: transparent !important; color: var(--ws-accent) !important; }
 .gf-issues-panel .gf-chip {
   min-block-size: 28px !important;
   padding-inline: 10px !important;

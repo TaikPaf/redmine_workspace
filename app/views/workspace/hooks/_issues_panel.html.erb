@@ -10,6 +10,23 @@
         <%= view.label %> <span class="gf-count"><%= view.count %></span>
       <% end %>
     <% end %>
+    <% saved = IssueQuery.visible.global_or_on_project(project).sorted.limit(10).to_a %>
+    <% if saved.any? %>
+      <span class="gf-chips-separator" role="separator" aria-label="<%= l(:label_workspace_saved_views) %>"></span>
+      <% saved.each do |query| %>
+        <% active = params[:query_id].to_s == query.id.to_s %>
+        <%= link_to _project_issues_path(project, query_id: query.id), class: "gf-chip gf-chip-saved#{' active' if active}", 'aria-current': (active ? 'true' : nil) do %>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>
+          <%= query.name %>
+        <% end %>
+      <% end %>
+    <% end %>
+    <% if User.current.allowed_to?(:save_queries, project, global: true) %>
+      <button type="button" class="gf-chip gf-chip-add" data-gf-save-view>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+        <%= l(:label_workspace_save_view) %>
+      </button>
+    <% end %>
   </div>
   <%= form_tag(workspace_search_path, method: :get, class: 'gf-smart-search') do %>
     <%= hidden_field_tag 'project_id', project&.id, id: nil %>

@@ -26,8 +26,8 @@ fr:
   label_workspace_open: ouvertes
   label_workspace_overdue: en retard
   text_workspace_projects_count:
-    one: "1 projet, favoris en premier"
-    other: "%{count} projets, favoris en premier"
+    one: "1 projet"
+    other: "%{count} projets"
   label_workspace_filter_projects: Filtrer les projets
   label_workspace_detailed_list: Liste détaillée
   label_workspace_projects_all: Tous
@@ -125,3 +125,21 @@ fr:
   label_workspace_add_note: Ajouter une note
   label_workspace_ctrl_enter: Ctrl + Entrée
   error_workspace_note_blank: La note est vide.
+  label_workspace_more: Plus
+  label_workspace_nav_collapse: Réduire la navigation
+  label_workspace_nav_expand: Déplier la navigation
+  label_workspace_bulk_one: 1 sélectionnée
+  label_workspace_bulk_other: "%{count} sélectionnées"
+  label_workspace_bulk_actions: Actions
+  label_workspace_bulk_clear: Tout désélectionner
+  label_workspace_save_view: Enregistrer la vue
+  label_workspace_saved_views: Vues enregistrées
+  label_workspace_shortcuts: Raccourcis clavier
+  label_workspace_shortcut_move: Ligne suivante / précédente
+  label_workspace_shortcut_open: Ouvrir la ligne
+  label_workspace_key_enter: Entrée
+  label_workspace_view_list: Liste
+  label_workspace_view_grid: Grille
+  label_workspace_current_version: Version en cours
+  label_workspace_activity: Activité
+  label_workspace_none: Aucune

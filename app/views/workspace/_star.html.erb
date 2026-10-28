@@ -1,0 +1,6 @@
+<% label = bookmarked ? l(:label_workspace_unbookmark) : l(:label_workspace_bookmark) %>
+<button type="button" class="gf-star" data-gf-bookmark="<%= bookmark_project_path(project) %>" data-project-id="<%= project.id %>"
+        aria-pressed="<%= bookmarked %>" aria-label="<%= label %>" title="<%= label %>"
+        data-label-on="<%= l(:label_workspace_unbookmark) %>" data-label-off="<%= l(:label_workspace_bookmark) %>">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3l-5.6 2.9 1.1-6.2L3 9.6l6.2-.9z"/></svg>
+</button>
